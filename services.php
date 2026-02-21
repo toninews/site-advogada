@@ -6,10 +6,10 @@
     loop
     playsinline
     preload="metadata"
-    poster="/images/optimized/direito-criminal-1280.webp"
+    poster="images/optimized/direito-criminal-1280.webp"
     aria-hidden="true"
   >
-    <source src="/images/services-optimized.mp4" type="video/mp4" />
+    <source src="images/services-optimized.mp4" type="video/mp4" />
   </video>
   <div class="overlay"></div>
 

@@ -211,6 +211,7 @@ header.container-fluid .brand-name-header {
   font-weight: 700;
   color: #fff;
   margin-top: 8px;
+  white-space: nowrap;
 }
 
 .header-bg {
@@ -956,10 +957,10 @@ header.container-fluid .brand-name-header {
 
 .parallax {
   position: relative;
-  background-image: url("/images/optimized/partners-1200.webp");
+  background-image: url("../images/optimized/partners-1200.webp");
   background-image: image-set(
-    url("/images/optimized/partners-1200.webp") 1x,
-    url("/images/optimized/partners-1920.webp") 2x
+    url("../images/optimized/partners-1200.webp") 1x,
+    url("../images/optimized/partners-1920.webp") 2x
   );
   min-height: 400px;
   background-position: center;
@@ -1206,7 +1207,7 @@ header.container-fluid .brand-name-header {
 
 .area-destaque {
   position: relative;
-  background-image: url("/images/optimized/direito-criminal-1280.webp");
+  background-image: url("../images/optimized/direito-criminal-1280.webp");
   background-size: cover;
   background-position: center;
   overflow: hidden;

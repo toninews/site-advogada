@@ -41,7 +41,7 @@
       <h2 class="with-shadow">Direito Previdenciario</h2>
       <a
         class="carousel-cta carousel-whatsapp-btn"
-        href="https://wa.me/555332012577"
+        href="https://wa.me/5500000000000"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chamar no WhatsApp"
@@ -65,7 +65,7 @@
       <h2 class="with-shadow">Direito do Consumidor</h2>
       <a
         class="carousel-cta carousel-whatsapp-btn"
-        href="https://wa.me/555332012577"
+        href="https://wa.me/5500000000000"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chamar no WhatsApp"
@@ -89,7 +89,7 @@
       <h2 class="with-shadow">Direito Trabalhista</h2>
       <a
         class="carousel-cta carousel-whatsapp-btn"
-        href="https://wa.me/555332012577"
+        href="https://wa.me/5500000000000"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chamar no WhatsApp"
