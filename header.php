@@ -23,7 +23,7 @@
           </svg>
           Cidade Exemplo-UF | Rua das Acácias, 245
         </span>
-        <a class="header-top-item header-top-link" href="tel:+555332012577" aria-label="Telefone (53) 3201-2577">
+        <a class="header-top-item header-top-link" href="tel:+5500000000000" aria-label="Telefone (53) 3201-2577">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11.2 11.2 0 0 0 3.5.56 1 1 0 0 1 1 1V21a1 1 0 0 1-1 1C10.8 22 2 13.2 2 2.9a1 1 0 0 1 1-1h4.7a1 1 0 0 1 1 1c0 1.2.2 2.4.56 3.5a1 1 0 0 1-.24 1z" />
           </svg>
