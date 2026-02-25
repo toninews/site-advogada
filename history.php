@@ -14,7 +14,19 @@
       </div>
       <div class="col-xs-12 col-md-5">
         <div class="history-reveal-card">
-          <img src="images/optimized/lawyer-320.webp" srcset="images/optimized/lawyer-320.webp 320w, images/optimized/lawyer-480.webp 480w" sizes="(min-width: 62em) 340px, 220px" alt="Advogada Maria Silva" loading="lazy" decoding="async" class="history-reveal-image">
+          <picture>
+            <source
+              type="image/avif"
+              srcset="images/optimized/lawyer-320.avif 320w, images/optimized/lawyer-480.avif 480w"
+              sizes="(min-width: 62em) 340px, 220px"
+            >
+            <source
+              type="image/webp"
+              srcset="images/optimized/lawyer-320.webp 320w, images/optimized/lawyer-480.webp 480w"
+              sizes="(min-width: 62em) 340px, 220px"
+            >
+            <img src="images/optimized/lawyer-320.webp" alt="Advogada Maria Silva" loading="lazy" decoding="async" class="history-reveal-image">
+          </picture>
           <div class="history-reveal-copy">
             <span class="history-reveal-name">Maria SilvaBBB</span>
             <span class="history-reveal-oab">OAB/XX XX.XXX11222</span>

@@ -29,8 +29,8 @@
     <div class="col-xs-12 col-md-3 footer-col footer-col-end">
       <div class="footer-info-block">
         <h3 class="footer-title">Contato</h3>
-        <p><a href="tel:+5500000000000">(00) 00000-0000</a></p>
-        <p><a href="mailto:contato@mariasilva.adv.br">contato@mariasilva.adv.br</a></p>
+        <p><a href="https://wa.me/5500000000000" target="_blank" rel="noopener noreferrer">(00) 00000-0000</a></p>
+        <p><a href="mailto:contato@exemplo.test">contato@exemplo.test</a></p>
         <p>Segunda a Sexta: 09h às 18h</p>
       </div>
     </div>
@@ -56,6 +56,17 @@
           </a>
         </div>
       </div>
+    </div>
+  </div>
+  <div class="row center-xs">
+    <div class="col-xs-12">
+      <p class="footer-disclaimer">
+        Aviso de transparência: parte das imagens deste site foi gerada com auxílio de IA e ajustada para fins ilustrativos.
+      </p>
+      <p class="footer-credit">
+        <span>Maria Silva Advocacia • Desenvolvido por toninews</span>
+        <img src="images/optimized/cim.webp" alt="CIM" loading="lazy" decoding="async" class="footer-credit-badge">
+      </p>
     </div>
   </div>
 </footer>

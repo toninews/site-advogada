@@ -21,9 +21,9 @@
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M12 2a7 7 0 0 0-7 7c0 5.3 7 13 7 13s7-7.7 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z" />
           </svg>
-          Cidade Exemplo-UF | Rua das Acácias, 245
+          Itajaí-SC | Rua das Acácias, 245
         </span>
-        <a class="header-top-item header-top-link" href="tel:+5500000000000" aria-label="Telefone (53) 3201-2577">
+        <a class="header-top-item header-top-link" href="https://wa.me/5500000000000" target="_blank" rel="noopener noreferrer" aria-label="Conversar no WhatsApp">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11.2 11.2 0 0 0 3.5.56 1 1 0 0 1 1 1V21a1 1 0 0 1-1 1C10.8 22 2 13.2 2 2.9a1 1 0 0 1 1-1h4.7a1 1 0 0 1 1 1c0 1.2.2 2.4.56 3.5a1 1 0 0 1-.24 1z" />
           </svg>
@@ -45,11 +45,12 @@
 
       <nav class="site-nav" aria-label="Menu principal">
         <ul id="primary-menu" class="site-menu">
-          <li><a href="#about"><span>✦</span> Sobre</a></li>
-          <li><a href="#history"><span>✦</span> História</a></li>
-          <li><a href="#areas"><span>✦</span> Áreas de Atuação</a></li>
-          <li><a href="#services"><span>✦</span> Serviços</a></li>
-          <li><a href="#contato"><span>✦</span> Contato</a></li>
+          <li><a href="#about"><span>&#9670;</span> Sobre</a></li>
+          <li><a href="#history"><span>&#9670;</span> História</a></li>
+          <li><a href="#areas"><span>&#9670;</span> Áreas de Atuação</a></li>
+          <li><a href="#services"><span>&#9670;</span> Serviços</a></li>
+          <li><a href="#articles"><span>&#9670;</span> Artigos</a></li>
+          <li><a href="#contato"><span>&#9670;</span> Contato</a></li>
         </ul>
       </nav>
     </div>
@@ -102,5 +103,20 @@
       closeMenu();
     }
   });
+
+  const adjustHashScroll = () => {
+    if (window.location.hash !== '#articles') return;
+    const target = document.querySelector('#articles');
+    if (!target) return;
+    const offset = 100;
+    const top = target.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top, behavior: 'auto' });
+  };
+
+  window.addEventListener('load', () => {
+    setTimeout(adjustHashScroll, 0);
+  });
+
+  window.addEventListener('hashchange', adjustHashScroll);
 })();
 </script>

@@ -18,9 +18,21 @@ $canonical = $scheme . '://' . $host . '/';
   <meta property="og:description" content="Atendimento jurídico em Direito Civil e Trabalhista com abordagem personalizada.">
   <meta property="og:url" content="<?php echo htmlspecialchars($canonical, ENT_QUOTES, 'UTF-8'); ?>">
   <meta name="twitter:card" content="summary">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Merriweather:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    .header-bg { background: linear-gradient(135deg, #282828, #1b4d3e); min-height: 82px; }
+    .site-footer { background: #223830; color: #f5f5f5; }
+    .footer-social { display: flex; gap: 10px; align-items: center; }
+    .footer-social-link { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; }
+    .footer-social-link svg { width: 18px; height: 18px; display: block; }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.google.com">
+  <link rel="preconnect" href="https://maps.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/flexboxgrid.css">
-  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/main.css?v=20260223a">
+  <script>window.__SITE_RUNTIME__ = "php";</script>
 </head>
 <body>
   <?php include 'header.php'; ?>
@@ -29,6 +41,8 @@ $canonical = $scheme . '://' . $host . '/';
   <?php include 'history.php'; ?>
   <?php include 'areas.php'; ?>
   <?php include 'services.php'; ?>
+  <?php include 'articles.php'; ?>
+  <?php include 'contact.php'; ?>
   <?php include 'footer.php'; ?>
 </body>
 </html>

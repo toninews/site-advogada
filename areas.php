@@ -11,7 +11,7 @@
         <i class="icon-bank"></i>
         <h3>Direito Criminal</h3>
         <p>Atuamos com firmeza na defesa dos seus direitos em processos criminais, analisando provas, construindo estratégias jurídicas eficazes e representando você perante as autoridades competentes. Nosso compromisso é garantir justiça e proteção em cada etapa.</p>
-        <a href="bancario.php" class="btn">Saiba mais</a>
+        <a href="" class="btn area-more-btn">Saiba mais</a>
       </div>
     </div>
 
@@ -20,7 +20,7 @@
         <i class="icon-bank"></i>
         <h3>Direito Previdenciário</h3>
         <p>Oferecemos suporte completo em aposentadorias, pensões, auxílio-doença e demais benefícios previdenciários. Representamos seus interesses perante o INSS e órgãos competentes, garantindo que seus direitos sejam respeitados e que você receba o benefício justo.</p>
-        <a href="bancario.php" class="btn">Saiba mais</a>
+        <a href="" class="btn area-more-btn">Saiba mais</a>
       </div>
     </div>
 
@@ -29,7 +29,7 @@
         <i class="icon-bank"></i>
         <h3>Direito do Consumidor</h3>
         <p>Defendemos seus direitos em casos de cobranças indevidas, contratos abusivos, problemas com produtos ou serviços e outras situações de consumo. Nosso objetivo é assegurar justiça e equilíbrio nas relações entre consumidores e fornecedores.</p>
-        <a href="bancario.php" class="btn">Saiba mais</a>
+        <a href="" class="btn area-more-btn">Saiba mais</a>
       </div>
     </div>
 
@@ -38,8 +38,38 @@
         <i class="icon-bank"></i>
         <h3>Direito Trabalhista</h3>
         <p>Defendemos seus direitos em casos de demissões injustas, assédio, falta de pagamento de salários e demais conflitos trabalhistas. Atuamos tanto na negociação quanto em ações judiciais, sempre com foco em garantir justiça e equilíbrio nas relações de trabalho.</p>
-        <a href="bancario.php" class="btn">Saiba mais</a>
+        <a href="" class="btn area-more-btn">Saiba mais</a>
       </div>
     </div>
   </div>
+  <div class="row center-xs">
+    <div class="col-xs-12">
+      <p id="areas-feedback" class="areas-feedback" aria-live="polite"></p>
+    </div>
+  </div>
 </section>
+
+<script>
+(() => {
+  const links = document.querySelectorAll('.area-more-btn');
+  const feedback = document.getElementById('areas-feedback');
+  if (!links.length || !feedback) return;
+
+  let clearTimer = null;
+  const showFeedback = () => {
+    feedback.textContent = 'Em breve teremos páginas completas de cada área. Para atendimento imediato, use o WhatsApp ou o formulário de contato.';
+    feedback.classList.add('is-visible');
+    if (clearTimer) clearTimeout(clearTimer);
+    clearTimer = setTimeout(() => {
+      feedback.classList.remove('is-visible');
+    }, 5200);
+  };
+
+  links.forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      showFeedback();
+    });
+  });
+})();
+</script>

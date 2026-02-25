@@ -6,7 +6,19 @@
 
     <div class="col-xs-12 col-md-5">
       <div class="about-image-card hidden">
-        <img src="images/optimized/building-480.webp" srcset="images/optimized/building-480.webp 480w, images/optimized/building-800.webp 800w" sizes="(min-width: 64em) 400px, (min-width: 48em) 45vw, 92vw" alt="Advogada Maria Silva" loading="lazy" decoding="async" class="about-image">
+        <picture>
+          <source
+            type="image/avif"
+            srcset="images/optimized/building-480.avif 480w, images/optimized/building-800.avif 800w"
+            sizes="(min-width: 64em) 400px, (min-width: 48em) 45vw, 92vw"
+          >
+          <source
+            type="image/webp"
+            srcset="images/optimized/building-480.webp 480w, images/optimized/building-800.webp 800w"
+            sizes="(min-width: 64em) 400px, (min-width: 48em) 45vw, 92vw"
+          >
+          <img src="images/optimized/building-480.webp" alt="Advogada Maria Silva" loading="lazy" decoding="async" class="about-image">
+        </picture>
       </div>
     </div>
 
