@@ -166,7 +166,7 @@
       const articleUrl = rawId
         ? (isPhpRuntime
           ? `artigo.php?id=${encodeURIComponent(rawId)}${slugParam}`
-          : `/artigos/${encodeURIComponent(staticSlug)}/`)
+          : `artigos/${encodeURIComponent(staticSlug)}/`)
         : '#';
 
       return `
