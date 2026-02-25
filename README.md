@@ -81,7 +81,7 @@ This regenerates:
 Optional environment variables for static article generation:
 
 ```bash
-ARTICLES_API_BASE="https://your-api.example.com" SITE_BASE_URL="https://your-site.example.com" ./build-static.sh
+ARTICLES_API_BASE="https://your-api.example.com" SITE_BASE_URL="https://your-site.example.com" GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com" ./build-static.sh
 ```
 
 ## Deployment

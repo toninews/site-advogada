@@ -1,157 +1,17 @@
-import fs from "node:fs/promises";
-import path from "node:path";
-
-const apiBase = process.env.ARTICLES_API_BASE || "https://blog-back-n6z4.onrender.com";
-const siteBase = (process.env.SITE_BASE_URL || "https://site-advogada-eosin.vercel.app").replace(/\/+$/, "");
-const uploadsBase = `${apiBase}/uploads`;
-const projectRoot = process.env.PROJECT_ROOT || process.cwd();
-const articlesDir = path.join(projectRoot, "artigos");
-const googleClientId = process.env.GOOGLE_CLIENT_ID || "";
-const timeoutMs = Math.max(8000, Number(process.env.ARTICLES_FETCH_TIMEOUT || 35) * 1000);
-const maxAttempts = Math.max(1, Number(process.env.ARTICLES_FETCH_RETRIES || 3));
-
-function esc(value = "") {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
-function slugify(value = "") {
-  return String(value)
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "artigo";
-}
-
-function resolveMediaUrl(value = "") {
-  const raw = String(value).trim();
-  if (!raw) return "";
-  if (/^https?:\/\//i.test(raw)) return raw;
-  if (raw.startsWith("/uploads/")) return `${apiBase}${raw}`;
-  if (raw.startsWith("uploads/")) return `${apiBase}/${raw}`;
-  return `${uploadsBase}/${encodeURIComponent(raw)}`;
-}
-
-function excerpt(content = "", max = 160) {
-  const plain = String(content).replace(/\s+/g, " ").trim();
-  if (!plain) return "Artigo jurídico da Maria Silva Advocacia.";
-  return plain.length <= max ? plain : `${plain.slice(0, max).trimEnd()}...`;
-}
-
-function formatDate(value) {
-  if (!value) return "";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
-
-function readTime(content = "") {
-  const words = String(content).trim().split(/\s+/).filter(Boolean).length;
-  return `${Math.max(1, Math.round(words / 220))} min de leitura`;
-}
-
-function renderContentHtml(content = "") {
-  const trimmed = String(content).trim();
-  if (!trimmed) return "<p>Sem conteúdo disponível.</p>";
-  const parts = trimmed.split(/\n\s*\n/);
-  const html = parts
-    .map((part) => esc(part.trim()).replaceAll("\n", "<br>"))
-    .filter(Boolean)
-    .map((line) => `<p>${line}</p>`)
-    .join("");
-  return html || "<p>Sem conteúdo disponível.</p>";
-}
-
-async function fetchJsonWithRetry(url) {
-  let lastError = null;
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const response = await fetch(url, {
-        headers: { Accept: "application/json", "User-Agent": "site-advogada-static-build/1.0" },
-        signal: controller.signal,
-      });
-      clearTimeout(timer);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      clearTimeout(timer);
-      lastError = error;
-      if (attempt < maxAttempts) {
-        await new Promise((r) => setTimeout(r, 3000));
-      }
-    }
-  }
-  throw lastError || new Error("Unknown fetch error");
-}
-
-async function main() {
-  await fs.rm(articlesDir, { recursive: true, force: true });
-  await fs.mkdir(articlesDir, { recursive: true });
-
-  let payload;
-  try {
-    payload = await fetchJsonWithRetry(`${apiBase}/articles?status=published&limit=200`);
-  } catch {
-    console.error(`Erro: não foi possível consultar a API de artigos após ${maxAttempts} tentativas.`);
-    process.exit(1);
-  }
-
-  const items = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
-  if (!items.length) {
-    console.error("Aviso: API respondeu, mas sem artigos publicados. Pasta /artigos gerada vazia.");
-    return;
-  }
-
-  const usedSlugs = new Set();
-  let written = 0;
-
-  for (const item of items) {
-    if (!item || typeof item !== "object") continue;
-    const id = String(item._id || "").trim();
-    const title = String(item.title || "Artigo").trim();
-    const content = String(item.content || "");
-    const slugRaw = String(item.slug || "").trim();
-    let slug = slugify(slugRaw || (id ? `id-${id}` : title));
-    const baseSlug = slug;
-    let suffix = 2;
-    while (usedSlugs.has(slug)) {
-      slug = `${baseSlug}-${suffix++}`;
-    }
-    usedSlugs.add(slug);
-
-    const seo = item.seo && typeof item.seo === "object" ? item.seo : {};
-    const metaTitle = String(seo.metaTitle || "").trim() || title;
-    const metaDescription = String(seo.metaDescription || "").trim() || excerpt(content);
-    const canonical = String(seo.canonicalUrl || "").trim() || `${siteBase}/artigos/${encodeURIComponent(slug)}/`;
-    const coverUrl = resolveMediaUrl(item.coverImage || "");
-    const ogImage = resolveMediaUrl(seo.ogImage || "") || coverUrl;
-    const published = formatDate(item.publishedAt || item.createdAt || item.updatedAt);
-    const views = Number(item.views ?? item.viewCount ?? 0) || 0;
-    const likes = Number(item.likes ?? item.likesCount ?? 0) || 0;
-
-    const html = `<!doctype html>
+<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${esc(`${metaTitle} | Maria Silva Advocacia`)}</title>
-    <meta name="description" content="${esc(metaDescription)}" />
+    <title>Discussão sobre a relevância da prova testemunhal, suas fragilidades e | Maria Silva Advocacia</title>
+    <meta name="description" content="Discussão sobre a relevância da prova testemunhal, suas fragilidades e como ela pode influenciar o resultado dos processos penais" />
     <meta name="robots" content="index,follow" />
-    <link rel="canonical" href="${esc(canonical)}" />
+    <link rel="canonical" href="https://site-advogada-eosin.vercel.app/artigos/o-uso-da-prova-testemunhal-no-processo-penal/" />
     <meta property="og:type" content="article" />
-    <meta property="og:title" content="${esc(metaTitle)}" />
-    <meta property="og:description" content="${esc(metaDescription)}" />
-    <meta property="og:url" content="${esc(canonical)}" />${ogImage ? `
-    <meta property="og:image" content="${esc(ogImage)}" />` : ""}
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <meta property="og:title" content="Discussão sobre a relevância da prova testemunhal, suas fragilidades e" />
+    <meta property="og:description" content="Discussão sobre a relevância da prova testemunhal, suas fragilidades e como ela pode influenciar o resultado dos processos penais" />
+    <meta property="og:url" content="https://site-advogada-eosin.vercel.app/artigos/o-uso-da-prova-testemunhal-no-processo-penal/" />
+    <meta property="og:image" content="https://res.cloudinary.com/db2za5zcy/image/upload/c_limit,f_auto,q_auto,w_1200/v1/blog/covers/o-uso-da-prova-testemunhal-no-processo-penal-1772054823615-51728e7e6679?_a=BAMAOGiu0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -171,9 +31,6 @@ async function main() {
       .article-comments { margin-top: 1rem; background: #fff; border: 1px solid rgba(182, 135, 34, 0.35); border-radius: 14px; padding: 1rem 1rem 1.15rem; }
       .article-comments h2 { margin: 0 0 0.65rem; color: #223830; font-size: 1.25rem; }
       .article-comments-note { margin: 0 0 0.9rem; color: #4a4a4a; font-size: 0.92rem; }
-      .comments-auth-box { margin: 0 0 0.9rem; padding: 0.7rem 0.75rem; border: 1px solid #dedede; border-radius: 10px; background: #fcfcfc; }
-      .comments-auth-status { margin: 0 0 0.5rem; color: #4a4a4a; font-size: 0.9rem; }
-      .comments-google-btn { min-height: 44px; }
       .comments-form textarea { width: 100%; min-height: 96px; border: 1px solid #cfcfcf; border-radius: 10px; padding: 0.7rem; font-family: "Roboto", sans-serif; resize: vertical; }
       .comments-form-actions { margin-top: 0.55rem; display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
       .comments-feedback { margin: 0.4rem 0 0; color: #223830; font-size: 0.9rem; }
@@ -229,25 +86,21 @@ async function main() {
         <a class="article-back-link" href="../../#articles">&larr; Voltar para os artigos</a>
       </div>
       <article class="article-detail">
-        ${coverUrl ? `<img class="article-detail-cover" alt="${esc(title)}" src="${esc(coverUrl)}" />` : ""}
+        <img class="article-detail-cover" alt="O uso da Prova Testemunhal no Processo Penal" src="https://res.cloudinary.com/db2za5zcy/image/upload/c_limit,f_auto,q_auto,w_1200/v1/blog/covers/o-uso-da-prova-testemunhal-no-processo-penal-1772054823615-51728e7e6679?_a=BAMAOGiu0" />
         <div class="article-detail-body">
-          <h1 id="article-title" class="article-detail-title">${esc(title)}</h1>
+          <h1 id="article-title" class="article-detail-title">O uso da Prova Testemunhal no Processo Penal</h1>
           <div class="article-detail-meta">
-            <span>${published ? `Publicado em ${esc(published)}` : ""}</span>
-            <span>${esc(readTime(content))}</span>
-            <span>${esc(String(views))} visualizações</span>
-            <span>${esc(String(likes))} curtidas</span>
+            <span>Publicado em 25/02/2026</span>
+            <span>1 min de leitura</span>
+            <span>0 visualizações</span>
+            <span>0 curtidas</span>
           </div>
-          <div class="article-detail-content">${renderContentHtml(content)}</div>
+          <div class="article-detail-content"><p>Discussão sobre a relevância da prova testemunhal, suas fragilidades e como ela pode influenciar o resultado dos processos penais</p></div>
         </div>
       </article>
-      <section class="article-comments" id="article-comments" data-article-slug="${esc(slug)}" aria-labelledby="comments-title">
+      <section class="article-comments" id="article-comments" data-article-slug="o-uso-da-prova-testemunhal-no-processo-penal" aria-labelledby="comments-title">
         <h2 id="comments-title">Comentários</h2>
         <p class="article-comments-note">Entre com sua conta para comentar. Os comentários passam por regras anti-spam e moderação.</p>
-        <div class="comments-auth-box">
-          <p id="comments-auth-status" class="comments-auth-status">Faça login com Google para comentar.</p>
-          <div id="comments-google-btn" class="comments-google-btn" aria-label="Entrar com Google"></div>
-        </div>
         <form id="comments-form" class="comments-form">
           <textarea id="comment-content" name="content" maxlength="2000" placeholder="Escreva seu comentário..." required></textarea>
           <div class="comments-form-actions">
@@ -360,13 +213,10 @@ async function main() {
         const API_BASE = ["localhost", "127.0.0.1"].includes(window.location.hostname)
           ? "http://localhost:4010"
           : "https://blog-back-n6z4.onrender.com";
-        const GOOGLE_CLIENT_ID = "${esc(googleClientId)}";
 
         const form = document.getElementById("comments-form");
         const input = document.getElementById("comment-content");
         const feedback = document.getElementById("comments-feedback");
-        const authStatus = document.getElementById("comments-auth-status");
-        const googleBtn = document.getElementById("comments-google-btn");
         const list = document.getElementById("comments-list");
         const empty = document.getElementById("comments-empty");
         const prevBtn = document.getElementById("comments-prev");
@@ -396,11 +246,6 @@ async function main() {
         function setFeedback(message, isError) {
           feedback.textContent = message || "";
           feedback.style.color = isError ? "#b03a2e" : "#223830";
-        }
-
-        function setAuthStatus(message) {
-          if (!authStatus) return;
-          authStatus.textContent = message || "";
         }
 
         async function requestJson(url, options) {
@@ -505,7 +350,6 @@ async function main() {
             });
             if (response.status === 401) {
               setFeedback("Faça login para comentar.", true);
-              setAuthStatus("Sessão não encontrada. Faça login com Google para comentar.");
               return;
             }
             if (!response.ok) {
@@ -568,56 +412,6 @@ async function main() {
           }
         }
 
-        async function onGoogleCredentialResponse(response) {
-          const idToken = String(response?.credential || "").trim();
-          if (!idToken) return;
-          try {
-            setAuthStatus("Validando login...");
-            const { response: r, body } = await requestJson(API_BASE + "/login/authGoogle", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-              },
-              body: JSON.stringify({ idToken }),
-            });
-            if (!r.ok) {
-              setAuthStatus((body && body.message) ? body.message : "Falha no login social.");
-              return;
-            }
-            setAuthStatus("Login realizado. Você já pode comentar.");
-            setFeedback("Sessão iniciada com sucesso.", false);
-            await loadComments();
-          } catch (_) {
-            setAuthStatus("Erro de rede ao fazer login.");
-          }
-        }
-
-        function initGoogleLogin() {
-          if (!GOOGLE_CLIENT_ID) {
-            setAuthStatus("Login social indisponível: GOOGLE_CLIENT_ID não configurado no build.");
-            return;
-          }
-          if (!window.google || !window.google.accounts || !window.google.accounts.id || !googleBtn) {
-            setAuthStatus("Carregando login Google...");
-            return;
-          }
-          window.onGoogleCredentialResponse = onGoogleCredentialResponse;
-          window.google.accounts.id.initialize({
-            client_id: GOOGLE_CLIENT_ID,
-            callback: onGoogleCredentialResponse,
-            auto_select: false,
-          });
-          window.google.accounts.id.renderButton(googleBtn, {
-            type: "standard",
-            size: "large",
-            theme: "outline",
-            text: "continue_with",
-            shape: "rectangular",
-          });
-          setAuthStatus("Faça login com Google para comentar.");
-        }
-
         form.addEventListener("submit", submitComment);
         list.addEventListener("click", handleAction);
         prevBtn.addEventListener("click", () => { if (page > 1) { page -= 1; loadComments(); } });
@@ -627,23 +421,7 @@ async function main() {
         });
 
         loadComments();
-        setTimeout(initGoogleLogin, 0);
-        window.addEventListener("load", initGoogleLogin);
       })();
     </script>
   </body>
-</html>`;
-
-    const targetDir = path.join(articlesDir, slug);
-    await fs.mkdir(targetDir, { recursive: true });
-    await fs.writeFile(path.join(targetDir, "index.html"), html, "utf8");
-    written += 1;
-  }
-
-  console.log(`Artigos estáticos gerados: ${written}`);
-}
-
-main().catch((error) => {
-  console.error("Erro inesperado ao gerar artigos estáticos:", error?.message || error);
-  process.exit(1);
-});
+</html>
