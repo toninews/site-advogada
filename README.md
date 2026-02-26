@@ -89,7 +89,7 @@ Esse comando regenera:
 Variáveis opcionais no build:
 
 ```bash
-ARTICLES_API_BASE="https://sua-api.example.com" SITE_BASE_URL="https://seu-site.example.com" GOOGLE_CLIENT_ID="seu-client-id.apps.googleusercontent.com" ./build-static.sh
+ARTICLES_API_BASE="https://sua-api.example.com" SITE_BASE_URL="https://seu-site.example.com" GOOGLE_CLIENT_ID="seu-client-id.apps.googleusercontent.com" MICROSOFT_CLIENT_ID="seu-microsoft-client-id" ./build-static.sh
 ```
 
 ### Deploy
@@ -110,7 +110,7 @@ Serviços usados:
 - **Frontend (site público)**: Vercel (hospedagem estática + CDN)
 - **Backend (API/Auth/Comentários/Artigos)**: Render (API Node)
 - **Imagens dos artigos**: Cloudinary (armazenamento e entrega de URL)
-- **Login social**: Google Identity Services + Google OAuth Client ID
+- **Login social**: Google Identity Services + Google OAuth Client ID + Microsoft Identity (MSAL)
 
 Fluxo de dados:
 1. Conteúdo é criado no backoffice/CMS (artigo + SEO + imagem de capa).
@@ -124,10 +124,10 @@ Fluxo de dados:
 7. Repositório é deployado na Vercel e servido pela CDN.
 8. No artigo, comentários e autenticação rodam em tempo real via API do Render.
 
-Fluxo de login Google:
-1. Front carrega o script Google (`https://accounts.google.com/gsi/client`).
-2. Usuário faz login no botão Google.
-3. Front envia `idToken` para `/login/authGoogle`.
+Fluxo de login social (Google e Microsoft):
+1. Front carrega os scripts Google (`https://accounts.google.com/gsi/client`) e Microsoft MSAL.
+2. Usuário faz login em um dos provedores.
+3. Front envia `idToken` para `/login/authGoogle` ou `/login/authMicrosoft`.
 4. Backend valida token e grava cookie HttpOnly `access_token`.
 5. Usuário comenta usando cookie de sessão (`credentials: include`).
 6. Logout chama `/login/logout` (com fallback `/login/authLogout`).
@@ -136,6 +136,7 @@ Variáveis de ambiente:
 - `SITE_BASE_URL`: domínio público do frontend (ex: `https://site-advogada-eosin.vercel.app`)
 - `ARTICLES_API_BASE`: URL base da API no Render (ex: `https://blog-back-n6z4.onrender.com`)
 - `GOOGLE_CLIENT_ID`: Client ID OAuth Web do Google
+- `MICROSOFT_CLIENT_ID`: Client ID da aplicação Microsoft (Azure App Registration)
 - `ARTICLES_FETCH_TIMEOUT`: timeout (segundos) na busca de artigos durante o build
 - `ARTICLES_FETCH_RETRIES`: tentativas de retry na busca de artigos durante o build
 
@@ -277,7 +278,7 @@ This regenerates:
 Optional build variables:
 
 ```bash
-ARTICLES_API_BASE="https://your-api.example.com" SITE_BASE_URL="https://your-site.example.com" GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com" ./build-static.sh
+ARTICLES_API_BASE="https://your-api.example.com" SITE_BASE_URL="https://your-site.example.com" GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com" MICROSOFT_CLIENT_ID="your-microsoft-client-id" ./build-static.sh
 ```
 
 ### Deployment
@@ -298,7 +299,7 @@ Services:
 - **Frontend (public website)**: Vercel (static hosting + CDN)
 - **Backend (API/Auth/Comments/Articles)**: Render (Node API)
 - **Article images**: Cloudinary (storage + delivery URL)
-- **Social login**: Google Identity Services + Google OAuth Client ID
+- **Social login**: Google Identity Services + Google OAuth Client ID + Microsoft Identity (MSAL)
 
 Data flow:
 1. Content is created in backoffice/CMS (article + SEO + cover image).
@@ -312,10 +313,10 @@ Data flow:
 7. Repository is deployed to Vercel and served via CDN.
 8. In article pages, comments and auth run live against Render API.
 
-Google login flow:
-1. Front loads Google JS (`https://accounts.google.com/gsi/client`).
-2. User signs in with Google button.
-3. Front sends `idToken` to `/login/authGoogle`.
+Social login flow (Google and Microsoft):
+1. Front loads Google JS (`https://accounts.google.com/gsi/client`) and Microsoft MSAL script.
+2. User signs in with Google or Microsoft button.
+3. Front sends `idToken` to `/login/authGoogle` or `/login/authMicrosoft`.
 4. Backend validates token and sets HttpOnly `access_token` cookie.
 5. User posts comments with session cookie (`credentials: include`).
 6. Logout calls `/login/logout` (fallback `/login/authLogout`).
@@ -324,6 +325,7 @@ Environment variables:
 - `SITE_BASE_URL`: public frontend domain (ex: `https://site-advogada-eosin.vercel.app`)
 - `ARTICLES_API_BASE`: API base URL on Render (ex: `https://blog-back-n6z4.onrender.com`)
 - `GOOGLE_CLIENT_ID`: Google OAuth Web Client ID
+- `MICROSOFT_CLIENT_ID`: Microsoft application client ID (Azure App Registration)
 - `ARTICLES_FETCH_TIMEOUT`: article fetch timeout during build (seconds)
 - `ARTICLES_FETCH_RETRIES`: article fetch retries during build
 

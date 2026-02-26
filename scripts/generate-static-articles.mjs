@@ -240,6 +240,39 @@ async function main() {
       .comments-pagination { margin-top: 0.9rem; display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; }
       .comments-page-info { color: #4e4e4e; font-size: 0.86rem; }
       .comments-empty { color: #5a5a5a; margin: 0.2rem 0 0; }
+      .comments-modal[hidden] { display: none; }
+      .comments-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.45);
+      }
+      .comments-modal-card {
+        width: min(92vw, 420px);
+        background: #fff;
+        border: 1px solid rgba(182, 135, 34, 0.4);
+        border-radius: 14px;
+        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.25);
+        padding: 1rem;
+      }
+      .comments-modal-title { margin: 0 0 0.35rem; color: #223830; font-size: 1.06rem; }
+      .comments-modal-text { margin: 0; color: #4a4a4a; line-height: 1.5; }
+      .comments-modal-actions { margin-top: 0.9rem; display: flex; justify-content: flex-end; gap: 0.55rem; }
+      .comments-modal-danger {
+        border-color: #b03a2e;
+        color: #fff;
+        background: #b03a2e;
+      }
+      .comments-modal-danger:hover,
+      .comments-modal-danger:focus-visible,
+      .comments-modal-danger:active {
+        border-color: #922b21;
+        background: #922b21;
+        color: #fff;
+      }
     </style>
   </head>
   <body>
@@ -332,6 +365,16 @@ async function main() {
           <span id="comments-page-info" class="comments-page-info"></span>
         </div>
       </section>
+      <div id="comments-delete-modal" class="comments-modal" hidden>
+        <div class="comments-modal-card" role="dialog" aria-modal="true" aria-labelledby="comments-delete-title">
+          <h3 id="comments-delete-title" class="comments-modal-title">Excluir comentário</h3>
+          <p class="comments-modal-text">Tem certeza que deseja excluir este comentário? Esta ação não pode ser desfeita.</p>
+          <div class="comments-modal-actions">
+            <button id="comments-delete-cancel" class="btn" type="button">Cancelar</button>
+            <button id="comments-delete-confirm" class="btn comments-modal-danger" type="button">Excluir</button>
+          </div>
+        </div>
+      </div>
     </main>
     <footer class="container-fluid site-footer" aria-labelledby="footer-title">
       <div class="row start-xs site-footer-row">
@@ -447,6 +490,9 @@ async function main() {
         const pageInfo = document.getElementById("comments-page-info");
         const commentsCountMeta = document.getElementById("article-comments-count");
         const viewsCountMeta = document.getElementById("article-views-count");
+        const deleteModal = document.getElementById("comments-delete-modal");
+        const deleteCancelBtn = document.getElementById("comments-delete-cancel");
+        const deleteConfirmBtn = document.getElementById("comments-delete-confirm");
 
         let page = 1;
         const pageSize = 10;
@@ -500,6 +546,37 @@ async function main() {
           const isJson = (response.headers.get("content-type") || "").includes("application/json");
           const body = isJson ? await response.json() : null;
           return { response, body };
+        }
+
+        function confirmDeleteComment() {
+          if (!deleteModal || !deleteCancelBtn || !deleteConfirmBtn) {
+            return Promise.resolve(window.confirm("Deseja excluir este comentário?"));
+          }
+          return new Promise((resolve) => {
+            const close = (result) => {
+              deleteModal.hidden = true;
+              deleteCancelBtn.removeEventListener("click", onCancel);
+              deleteConfirmBtn.removeEventListener("click", onConfirm);
+              deleteModal.removeEventListener("click", onBackdrop);
+              document.removeEventListener("keydown", onKeyDown);
+              resolve(result);
+            };
+            const onCancel = () => close(false);
+            const onConfirm = () => close(true);
+            const onBackdrop = (event) => {
+              if (event.target === deleteModal) close(false);
+            };
+            const onKeyDown = (event) => {
+              if (event.key === "Escape") close(false);
+            };
+
+            deleteModal.hidden = false;
+            deleteCancelBtn.addEventListener("click", onCancel);
+            deleteConfirmBtn.addEventListener("click", onConfirm);
+            deleteModal.addEventListener("click", onBackdrop);
+            document.addEventListener("keydown", onKeyDown);
+            deleteConfirmBtn.focus();
+          });
         }
 
         function getFingerprint() {
@@ -686,7 +763,7 @@ async function main() {
               else if (!response.ok) setFeedback("Não foi possível editar.", true);
               else setFeedback("Comentário atualizado.", false);
             } else if (action === "delete") {
-              if (!window.confirm("Deseja excluir este comentário?")) return;
+              if (!(await confirmDeleteComment())) return;
               const { response } = await requestJson(API_BASE + "/comments/" + encodeURIComponent(id), {
                 method: "DELETE",
                 headers: buildWriteHeaders(),
@@ -808,10 +885,24 @@ async function main() {
               prompt: "select_account",
             });
 
-            const idToken = String(loginRes?.idToken || "").trim();
+            let idToken = String(loginRes?.idToken || "").trim();
+            if (!idToken && loginRes?.account && typeof msalInstance.acquireTokenSilent === "function") {
+              const silentRes = await msalInstance.acquireTokenSilent({
+                account: loginRes.account,
+                scopes: ["openid", "profile", "email"],
+              });
+              idToken = String(silentRes?.idToken || "").trim();
+            }
+
+            if (!idToken) {
+              setFeedback("Microsoft não retornou idToken. Verifique App Registration (SPA + Redirect URI + ID tokens).", true);
+              return;
+            }
+
             await completeSocialLogin("Microsoft", "/login/authMicrosoft", idToken);
-          } catch (_) {
-            setFeedback("Falha no login Microsoft.", true);
+          } catch (error) {
+            const message = String(error?.message || error?.errorMessage || "").trim();
+            setFeedback(message ? ("Falha no login Microsoft: " + message) : "Falha no login Microsoft.", true);
           }
         }
 
