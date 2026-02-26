@@ -154,7 +154,11 @@ async function main() {
     <meta property="og:url" content="${esc(canonical)}" />${ogImage ? `
     <meta property="og:image" content="${esc(ogImage)}" />` : ""}
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://alcdn.msauth.net/browser/2.39.0/js/msal-browser.min.js" defer></script>
+    <script
+      src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"
+      defer
+      onerror="(function(){var s=document.createElement('script');s.src='https://alcdn.msftauth.net/browser/2.35.0/js/msal-browser.min.js';s.defer=true;document.head.appendChild(s);}())"
+    ></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -179,7 +183,13 @@ async function main() {
       .comments-auth-label { margin: 0 0 0.38rem; color: #4a4a4a; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
       .comments-auth-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
       .comments-auth-providers { display: inline-flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
-      .comments-google-btn { min-height: 40px; }
+      .comments-google-btn {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 0;
+      }
       .comments-provider-btn {
         width: 40px;
         height: 40px;
@@ -189,8 +199,29 @@ async function main() {
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        border: 1px solid #d0d0d0;
+        background: #fff;
+        box-shadow: none;
+        color: inherit;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
       }
-      .comments-provider-btn svg { width: 18px; height: 18px; }
+      .comments-provider-btn:hover,
+      .comments-provider-btn:focus-visible,
+      .comments-provider-btn:active {
+        background: #f5f5f5;
+        border-color: #bdbdbd;
+        box-shadow: none;
+        color: inherit;
+        transform: none;
+      }
+      .comments-provider-btn svg { width: 16px; height: 16px; }
+      .comments-provider-btn--ms svg { width: 13px; height: 13px; }
+      .comments-provider-btn--ms {
+        width: 34px;
+        height: 34px;
+        min-height: 34px;
+      }
+      .comments-auth-providers > * { vertical-align: middle; }
       .comments-provider-btn--ms svg rect { fill: #f25022; }
       .comments-provider-btn--ms svg rect.ms-green { fill: #7fba00; }
       .comments-provider-btn--ms svg rect.ms-blue { fill: #00a4ef; }
