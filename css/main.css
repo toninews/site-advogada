@@ -149,12 +149,13 @@ header.container-fluid .brand-name-header {
 }
 
 header.container-fluid .brand-name-header-link {
-  text-decoration: none;
+  text-decoration: none !important;
 }
 
 header.container-fluid .brand-name-header-link:hover,
 header.container-fluid .brand-name-header-link:focus-visible,
 header.container-fluid .brand-name-header-link:active {
+  text-decoration: none !important;
   color: #f7e6a6;
 }
 
