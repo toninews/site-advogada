@@ -273,7 +273,7 @@ if ($article && isset($article['content'])) {
               alt="Advogada Maria Silva - Direito Civil e Trabalhista"
             />
           </a>
-          <p class="brand-name-header">Maria Silva Advocacia</p>
+          <a href="index.php" class="brand-name-header brand-name-header-link">Maria Silva Advocacia</a>
         </div>
 
         <div class="col-xs-12 col-sm-9 end-xs header-nav-wrap">

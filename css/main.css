@@ -148,6 +148,16 @@ header.container-fluid .brand-name-header {
   white-space: nowrap;
 }
 
+header.container-fluid .brand-name-header-link {
+  text-decoration: none;
+}
+
+header.container-fluid .brand-name-header-link:hover,
+header.container-fluid .brand-name-header-link:focus-visible,
+header.container-fluid .brand-name-header-link:active {
+  color: #f7e6a6;
+}
+
 .header-bg {
   background: linear-gradient(135deg, #282828, #1b4d3e);
   color: #fff;
@@ -1554,7 +1564,7 @@ header.container-fluid .brand-name-header {
 
 .contact-highlights li {
   margin: 0 0 0.45rem;
-  font-size: clamp(0.72rem, 3.05vw, 0.88rem);
+  font-size: clamp(0.78rem, 3.2vw, 0.95rem);
   white-space: nowrap;
 }
 
