@@ -173,7 +173,10 @@ async function main() {
       .article-comments-note { margin: 0 0 0.9rem; color: #4a4a4a; font-size: 0.92rem; }
       .comments-auth-box { margin: 0 0 0.9rem; padding: 0.7rem 0.75rem; border: 1px solid #dedede; border-radius: 10px; background: #fcfcfc; }
       .comments-auth-status { margin: 0 0 0.5rem; color: #4a4a4a; font-size: 0.9rem; }
+      .comments-auth-actions { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; }
       .comments-google-btn { min-height: 44px; }
+      .comments-logout-btn { display: none; }
+      .comments-logout-btn.is-visible { display: inline-flex; }
       .comments-form textarea { width: 100%; min-height: 96px; border: 1px solid #cfcfcf; border-radius: 10px; padding: 0.7rem; font-family: "Roboto", sans-serif; resize: vertical; }
       .comments-form-actions { margin-top: 0.55rem; display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
       .comments-feedback { margin: 0.4rem 0 0; color: #223830; font-size: 0.9rem; }
@@ -246,7 +249,10 @@ async function main() {
         <p class="article-comments-note">Entre com sua conta para comentar. Os comentários passam por regras anti-spam e moderação.</p>
         <div class="comments-auth-box">
           <p id="comments-auth-status" class="comments-auth-status">Faça login com Google para comentar.</p>
-          <div id="comments-google-btn" class="comments-google-btn" aria-label="Entrar com Google"></div>
+          <div class="comments-auth-actions">
+            <div id="comments-google-btn" class="comments-google-btn" aria-label="Entrar com Google"></div>
+            <button id="comments-logout-btn" class="btn comments-logout-btn" type="button">Sair</button>
+          </div>
         </div>
         <form id="comments-form" class="comments-form">
           <textarea id="comment-content" name="content" maxlength="2000" placeholder="Escreva seu comentário..." required></textarea>
@@ -367,6 +373,7 @@ async function main() {
         const feedback = document.getElementById("comments-feedback");
         const authStatus = document.getElementById("comments-auth-status");
         const googleBtn = document.getElementById("comments-google-btn");
+        const logoutBtn = document.getElementById("comments-logout-btn");
         const list = document.getElementById("comments-list");
         const empty = document.getElementById("comments-empty");
         const prevBtn = document.getElementById("comments-prev");
@@ -376,6 +383,7 @@ async function main() {
         let page = 1;
         const pageSize = 10;
         let total = 0;
+        let isLoggedIn = false;
 
         function getCookie(name) {
           const row = document.cookie
@@ -401,6 +409,13 @@ async function main() {
         function setAuthStatus(message) {
           if (!authStatus) return;
           authStatus.textContent = message || "";
+        }
+
+        function setLoggedInUI(loggedIn) {
+          isLoggedIn = Boolean(loggedIn);
+          if (logoutBtn) {
+            logoutBtn.classList.toggle("is-visible", isLoggedIn);
+          }
         }
 
         async function requestJson(url, options) {
@@ -506,6 +521,7 @@ async function main() {
             if (response.status === 401) {
               setFeedback("Faça login para comentar.", true);
               setAuthStatus("Sessão não encontrada. Faça login com Google para comentar.");
+              setLoggedInUI(false);
               return;
             }
             if (!response.ok) {
@@ -583,8 +599,10 @@ async function main() {
             });
             if (!r.ok) {
               setAuthStatus((body && body.message) ? body.message : "Falha no login social.");
+              setLoggedInUI(false);
               return;
             }
+            setLoggedInUI(true);
             setAuthStatus("Login realizado. Você já pode comentar.");
             setFeedback("Sessão iniciada com sucesso.", false);
             await loadComments();
@@ -618,8 +636,30 @@ async function main() {
           setAuthStatus("Faça login com Google para comentar.");
         }
 
+        async function logout() {
+          try {
+            const { response } = await requestJson(API_BASE + "/login/logout", {
+              method: "POST",
+              headers: buildWriteHeaders(),
+            });
+            if (!response.ok) {
+              setFeedback("Não foi possível encerrar a sessão agora.", true);
+              return;
+            }
+            if (window.google && window.google.accounts && window.google.accounts.id) {
+              window.google.accounts.id.disableAutoSelect();
+            }
+            setLoggedInUI(false);
+            setAuthStatus("Sessão encerrada. Faça login com Google para comentar.");
+            setFeedback("Logout realizado.", false);
+          } catch (_) {
+            setFeedback("Erro ao encerrar sessão.", true);
+          }
+        }
+
         form.addEventListener("submit", submitComment);
         list.addEventListener("click", handleAction);
+        if (logoutBtn) logoutBtn.addEventListener("click", logout);
         prevBtn.addEventListener("click", () => { if (page > 1) { page -= 1; loadComments(); } });
         nextBtn.addEventListener("click", () => {
           const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -627,6 +667,7 @@ async function main() {
         });
 
         loadComments();
+        setLoggedInUI(false);
         setTimeout(initGoogleLogin, 0);
         window.addEventListener("load", initGoogleLogin);
       })();
