@@ -7,6 +7,7 @@ const uploadsBase = `${apiBase}/uploads`;
 const projectRoot = process.env.PROJECT_ROOT || process.cwd();
 const articlesDir = path.join(projectRoot, "artigos");
 const googleClientId = process.env.GOOGLE_CLIENT_ID || "";
+const microsoftClientId = process.env.MICROSOFT_CLIENT_ID || "";
 const timeoutMs = Math.max(8000, Number(process.env.ARTICLES_FETCH_TIMEOUT || 35) * 1000);
 const maxAttempts = Math.max(1, Number(process.env.ARTICLES_FETCH_RETRIES || 3));
 
@@ -153,6 +154,7 @@ async function main() {
     <meta property="og:url" content="${esc(canonical)}" />${ogImage ? `
     <meta property="og:image" content="${esc(ogImage)}" />` : ""}
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://alcdn.msauth.net/browser/2.39.0/js/msal-browser.min.js" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -176,6 +178,7 @@ async function main() {
       .comments-auth-status { margin: 0 0 0.5rem; color: #4a4a4a; font-size: 0.9rem; }
       .comments-auth-actions { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; }
       .comments-google-btn { min-height: 44px; }
+      .comments-provider-btn { min-height: 42px; }
       .comments-logout-btn { display: none; }
       .comments-logout-btn.is-visible { display: inline-flex; }
       .comments-form textarea { width: 100%; min-height: 96px; border: 1px solid #cfcfcf; border-radius: 10px; padding: 0.7rem; font-family: "Roboto", sans-serif; resize: vertical; }
@@ -253,6 +256,7 @@ async function main() {
           <p id="comments-auth-status" class="comments-auth-status">Faça login com Google para comentar.</p>
           <div class="comments-auth-actions">
             <div id="comments-google-btn" class="comments-google-btn" aria-label="Entrar com Google"></div>
+            <button id="comments-microsoft-btn" class="btn comments-provider-btn" type="button">Entrar com Microsoft</button>
             <button id="comments-logout-btn" class="btn comments-logout-btn" type="button">Sair</button>
           </div>
         </div>
@@ -370,12 +374,14 @@ async function main() {
           ? "http://localhost:4010"
           : "https://blog-back-n6z4.onrender.com";
         const GOOGLE_CLIENT_ID = "${esc(googleClientId)}";
+        const MICROSOFT_CLIENT_ID = "${esc(microsoftClientId)}";
 
         const form = document.getElementById("comments-form");
         const input = document.getElementById("comment-content");
         const feedback = document.getElementById("comments-feedback");
         const authStatus = document.getElementById("comments-auth-status");
         const googleBtn = document.getElementById("comments-google-btn");
+        const microsoftBtn = document.getElementById("comments-microsoft-btn");
         const logoutBtn = document.getElementById("comments-logout-btn");
         const list = document.getElementById("comments-list");
         const empty = document.getElementById("comments-empty");
@@ -389,6 +395,7 @@ async function main() {
         const pageSize = 10;
         let total = 0;
         let isLoggedIn = false;
+        let msalInstance = null;
 
         function toInt(value, fallback = 0) {
           const parsed = Number.parseInt(value, 10);
@@ -583,7 +590,7 @@ async function main() {
             });
             if (response.status === 401) {
               setFeedback("Faça login para comentar.", true);
-              setAuthStatus("Sessão não encontrada. Faça login com Google para comentar.");
+              setAuthStatus("Sessão não encontrada. Faça login com Google ou Microsoft para comentar.");
               setLoggedInUI(false);
               return;
             }
@@ -647,12 +654,11 @@ async function main() {
           }
         }
 
-        async function onGoogleCredentialResponse(response) {
-          const idToken = String(response?.credential || "").trim();
+        async function completeSocialLogin(providerLabel, endpoint, idToken) {
           if (!idToken) return;
           try {
-            setAuthStatus("Validando login...");
-            const { response: r, body } = await requestJson(API_BASE + "/login/authGoogle", {
+            setAuthStatus("Validando login " + providerLabel + "...");
+            const { response: r, body } = await requestJson(API_BASE + endpoint, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -670,13 +676,18 @@ async function main() {
             setFeedback("Sessão iniciada com sucesso.", false);
             await loadComments();
           } catch (_) {
-            setAuthStatus("Erro de rede ao fazer login.");
+            setAuthStatus("Erro de rede ao fazer login " + providerLabel + ".");
           }
+        }
+
+        async function onGoogleCredentialResponse(response) {
+          const idToken = String(response?.credential || "").trim();
+          await completeSocialLogin("Google", "/login/authGoogle", idToken);
         }
 
         function initGoogleLogin() {
           if (!GOOGLE_CLIENT_ID) {
-            setAuthStatus("Login social indisponível: GOOGLE_CLIENT_ID não configurado no build.");
+            if (googleBtn) googleBtn.style.display = "none";
             return;
           }
           if (!window.google || !window.google.accounts || !window.google.accounts.id || !googleBtn) {
@@ -696,7 +707,46 @@ async function main() {
             text: "continue_with",
             shape: "rectangular",
           });
-          setAuthStatus("Faça login com Google para comentar.");
+          if (!MICROSOFT_CLIENT_ID) {
+            setAuthStatus("Faça login com Google para comentar.");
+          }
+        }
+
+        async function loginWithMicrosoft() {
+          if (!MICROSOFT_CLIENT_ID) {
+            setFeedback("Login Microsoft indisponível: MICROSOFT_CLIENT_ID não configurado.", true);
+            return;
+          }
+          if (!window.msal || !window.msal.PublicClientApplication) {
+            setFeedback("Biblioteca Microsoft ainda não carregou. Tente novamente.", true);
+            return;
+          }
+
+          try {
+            if (!msalInstance) {
+              msalInstance = new window.msal.PublicClientApplication({
+                auth: {
+                  clientId: MICROSOFT_CLIENT_ID,
+                  authority: "https://login.microsoftonline.com/common",
+                  redirectUri: window.location.origin,
+                },
+                cache: { cacheLocation: "sessionStorage" },
+              });
+              if (typeof msalInstance.initialize === "function") {
+                await msalInstance.initialize();
+              }
+            }
+
+            const loginRes = await msalInstance.loginPopup({
+              scopes: ["openid", "profile", "email"],
+              prompt: "select_account",
+            });
+
+            const idToken = String(loginRes?.idToken || "").trim();
+            await completeSocialLogin("Microsoft", "/login/authMicrosoft", idToken);
+          } catch (_) {
+            setFeedback("Falha no login Microsoft.", true);
+          }
         }
 
         async function logout() {
@@ -729,7 +779,7 @@ async function main() {
               window.google.accounts.id.disableAutoSelect();
             }
             setLoggedInUI(false);
-            setAuthStatus("Sessão encerrada. Faça login com Google para comentar.");
+            setAuthStatus("Sessão encerrada. Faça login com Google ou Microsoft para comentar.");
             setFeedback("Logout realizado.", false);
           } catch (_) {
             setFeedback("Erro ao encerrar sessão.", true);
@@ -738,6 +788,7 @@ async function main() {
 
         form.addEventListener("submit", submitComment);
         list.addEventListener("click", handleAction);
+        if (microsoftBtn) microsoftBtn.addEventListener("click", loginWithMicrosoft);
         if (logoutBtn) logoutBtn.addEventListener("click", logout);
         prevBtn.addEventListener("click", () => { if (page > 1) { page -= 1; loadComments(); } });
         nextBtn.addEventListener("click", () => {
@@ -748,6 +799,16 @@ async function main() {
         loadComments();
         registerView();
         setLoggedInUI(false);
+        if (!MICROSOFT_CLIENT_ID && microsoftBtn) {
+          microsoftBtn.style.display = "none";
+        }
+        if (!GOOGLE_CLIENT_ID && !MICROSOFT_CLIENT_ID) {
+          setAuthStatus("Login social indisponível: configure GOOGLE_CLIENT_ID ou MICROSOFT_CLIENT_ID no build.");
+        } else if (GOOGLE_CLIENT_ID && MICROSOFT_CLIENT_ID) {
+          setAuthStatus("Faça login com Google ou Microsoft para comentar.");
+        } else if (MICROSOFT_CLIENT_ID) {
+          setAuthStatus("Faça login com Microsoft para comentar.");
+        }
         setTimeout(initGoogleLogin, 0);
         window.addEventListener("load", initGoogleLogin);
       })();
