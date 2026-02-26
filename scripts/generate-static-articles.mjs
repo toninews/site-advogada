@@ -176,9 +176,25 @@ async function main() {
       .article-comments-note { margin: 0 0 0.9rem; color: #4a4a4a; font-size: 0.92rem; }
       .comments-auth-box { margin: 0 0 0.9rem; padding: 0.7rem 0.75rem; border: 1px solid #dedede; border-radius: 10px; background: #fcfcfc; }
       .comments-auth-status { margin: 0 0 0.5rem; color: #4a4a4a; font-size: 0.9rem; }
-      .comments-auth-actions { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; }
-      .comments-google-btn { min-height: 44px; }
-      .comments-provider-btn { min-height: 42px; }
+      .comments-auth-label { margin: 0 0 0.38rem; color: #4a4a4a; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+      .comments-auth-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+      .comments-auth-providers { display: inline-flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+      .comments-google-btn { min-height: 40px; }
+      .comments-provider-btn {
+        width: 40px;
+        height: 40px;
+        min-height: 40px;
+        border-radius: 999px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .comments-provider-btn svg { width: 18px; height: 18px; }
+      .comments-provider-btn--ms svg rect { fill: #f25022; }
+      .comments-provider-btn--ms svg rect.ms-green { fill: #7fba00; }
+      .comments-provider-btn--ms svg rect.ms-blue { fill: #00a4ef; }
+      .comments-provider-btn--ms svg rect.ms-yellow { fill: #ffb900; }
       .comments-logout-btn { display: none; }
       .comments-logout-btn.is-visible { display: inline-flex; }
       .comments-form textarea { width: 100%; min-height: 96px; border: 1px solid #cfcfcf; border-radius: 10px; padding: 0.7rem; font-family: "Roboto", sans-serif; resize: vertical; }
@@ -253,10 +269,20 @@ async function main() {
         <h2 id="comments-title">Comentários</h2>
         <p class="article-comments-note">Entre com sua conta para comentar. Os comentários passam por regras anti-spam e moderação.</p>
         <div class="comments-auth-box">
-          <p id="comments-auth-status" class="comments-auth-status">Faça login com Google para comentar.</p>
+          <p id="comments-auth-status" class="comments-auth-status">Entre com sua conta para comentar.</p>
+          <p class="comments-auth-label">Fazer login com</p>
           <div class="comments-auth-actions">
-            <div id="comments-google-btn" class="comments-google-btn" aria-label="Entrar com Google"></div>
-            <button id="comments-microsoft-btn" class="btn comments-provider-btn" type="button">Entrar com Microsoft</button>
+            <div class="comments-auth-providers" aria-label="Provedores de login">
+              <div id="comments-google-btn" class="comments-google-btn" aria-label="Entrar com Google"></div>
+              <button id="comments-microsoft-btn" class="btn comments-provider-btn comments-provider-btn--ms" type="button" aria-label="Entrar com Microsoft" title="Entrar com Microsoft">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <rect x="2" y="2" width="9" height="9"></rect>
+                  <rect class="ms-green" x="13" y="2" width="9" height="9"></rect>
+                  <rect class="ms-blue" x="2" y="13" width="9" height="9"></rect>
+                  <rect class="ms-yellow" x="13" y="13" width="9" height="9"></rect>
+                </svg>
+              </button>
+            </div>
             <button id="comments-logout-btn" class="btn comments-logout-btn" type="button">Sair</button>
           </div>
         </div>
@@ -701,11 +727,10 @@ async function main() {
             auto_select: false,
           });
           window.google.accounts.id.renderButton(googleBtn, {
-            type: "standard",
-            size: "large",
+            type: "icon",
+            size: "medium",
             theme: "outline",
-            text: "continue_with",
-            shape: "rectangular",
+            shape: "circle",
           });
           if (!MICROSOFT_CLIENT_ID) {
             setAuthStatus("Faça login com Google para comentar.");
@@ -717,8 +742,18 @@ async function main() {
             setFeedback("Login Microsoft indisponível: MICROSOFT_CLIENT_ID não configurado.", true);
             return;
           }
-          if (!window.msal || !window.msal.PublicClientApplication) {
-            setFeedback("Biblioteca Microsoft ainda não carregou. Tente novamente.", true);
+          const waitForMsal = async (timeoutMs) => {
+            const startedAt = Date.now();
+            while (Date.now() - startedAt < timeoutMs) {
+              if (window.msal && window.msal.PublicClientApplication) return true;
+              await new Promise((resolve) => setTimeout(resolve, 120));
+            }
+            return false;
+          };
+
+          const msalReady = await waitForMsal(8000);
+          if (!msalReady) {
+            setFeedback("Não foi possível carregar o login Microsoft agora. Tente novamente em alguns segundos.", true);
             return;
           }
 
@@ -801,6 +836,17 @@ async function main() {
         setLoggedInUI(false);
         if (!MICROSOFT_CLIENT_ID && microsoftBtn) {
           microsoftBtn.style.display = "none";
+        }
+        if (MICROSOFT_CLIENT_ID && microsoftBtn) {
+          microsoftBtn.disabled = true;
+          const enableMicrosoftWhenReady = () => {
+            if (window.msal && window.msal.PublicClientApplication) {
+              microsoftBtn.disabled = false;
+              return;
+            }
+            window.setTimeout(enableMicrosoftWhenReady, 150);
+          };
+          enableMicrosoftWhenReady();
         }
         if (!GOOGLE_CLIENT_ID && !MICROSOFT_CLIENT_ID) {
           setAuthStatus("Login social indisponível: configure GOOGLE_CLIENT_ID ou MICROSOFT_CLIENT_ID no build.");

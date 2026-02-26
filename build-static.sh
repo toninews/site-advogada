@@ -6,6 +6,14 @@ cd "$PROJECT_ROOT"
 mkdir -p artigos
 export PROJECT_ROOT
 
+# Load local env vars for static generation when available.
+if [ -f ".env" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . ./.env
+  set +a
+fi
+
 cat > index.html <<'HTML_HEAD'
 <!DOCTYPE html>
 <html lang="pt-BR">
