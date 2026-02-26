@@ -69,6 +69,33 @@ function renderContentHtml(content = "") {
   return html || "<p>Sem conteúdo disponível.</p>";
 }
 
+function buildCardSummary(item) {
+  if (!item || typeof item !== "object") return null;
+  const content = String(item.content || "");
+  const plain = content.replace(/\s+/g, " ").trim();
+  const wordCount = plain ? plain.split(" ").filter(Boolean).length : 0;
+  const excerptText = plain.length > 280 ? `${plain.slice(0, 280).trimEnd()}...` : plain;
+  return {
+    _id: item._id || "",
+    slug: item.slug || "",
+    title: item.title || "Artigo",
+    excerpt: excerptText,
+    wordCount,
+    coverImage: item.coverImage || "",
+    publishedAt: item.publishedAt || "",
+    createdAt: item.createdAt || "",
+    updatedAt: item.updatedAt || "",
+    views: item.views ?? item.viewCount ?? item.viewsCount ?? 0,
+    viewCount: item.viewCount ?? item.views ?? item.viewsCount ?? 0,
+    viewsCount: item.viewsCount ?? item.views ?? item.viewCount ?? 0,
+    likes: item.likes ?? item.likesCount ?? 0,
+    likesCount: item.likesCount ?? item.likes ?? 0,
+    comments: item.comments ?? item.commentsCount ?? item.commentCount ?? 0,
+    commentsCount: item.commentsCount ?? item.comments ?? item.commentCount ?? 0,
+    commentCount: item.commentCount ?? item.comments ?? item.commentsCount ?? 0,
+  };
+}
+
 async function fetchJsonWithRetry(url) {
   let lastError = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -107,9 +134,19 @@ async function main() {
 
   const items = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
   if (!items.length) {
+    await fs.writeFile(path.join(articlesDir, "index.json"), "[]\n", "utf8");
     console.error("Aviso: API respondeu, mas sem artigos publicados. Pasta /artigos gerada vazia.");
     return;
   }
+
+  const cardsPayload = items
+    .map((item) => buildCardSummary(item))
+    .filter(Boolean);
+  await fs.writeFile(
+    path.join(articlesDir, "index.json"),
+    `${JSON.stringify(cardsPayload)}\n`,
+    "utf8",
+  );
 
   const usedSlugs = new Set();
   let written = 0;

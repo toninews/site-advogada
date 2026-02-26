@@ -20,6 +20,7 @@
     : 'https://blog-back-n6z4.onrender.com';
 
   const API_URL = `${API_BASE}/articles?status=published&limit=6`;
+  const STATIC_INDEX_URL = 'artigos/index.json';
   const UPLOADS_BASE = `${API_BASE}/uploads`;
   const statusEl = document.getElementById('articles-status');
   const listEl = document.getElementById('articles-list');
@@ -94,6 +95,10 @@
   }
 
   function getReadTime(content) {
+    if (Number.isFinite(Number(content)) && Number(content) > 0) {
+      const minutesFromCount = Math.max(1, Math.round(Number(content) / 220));
+      return `${minutesFromCount} min de leitura`;
+    }
     const words = String(content || '').trim().split(/\s+/).filter(Boolean).length;
     const minutes = Math.max(1, Math.round(words / 220));
     return `${minutes} min de leitura`;
@@ -171,7 +176,7 @@
     listEl.innerHTML = items.map((item, index) => {
       const id = safe(item._id || '');
       const title = safe(item.title || 'Sem título');
-      const rawContent = String(item.content || '');
+      const rawContent = String(item.content || item.excerpt || '');
       const excerpt = safe(rawContent.slice(0, 180) + (rawContent.length > 180 ? '...' : ''));
       const cover = resolveCoverUrl(item.coverImage);
       const viewsMetric = pickMetric(item, [
@@ -192,7 +197,7 @@
       const commentsMetric = pickMetric(item, ['comments', 'commentsCount', 'commentCount', 'stats.comments', 'metrics.comments', 'counters.comments']);
       const commentsCount = commentsMetric ?? 0;
       const initialLikes = pickMetric(item, ['likes', 'likesCount', 'stats.likes', 'metrics.likes', 'counters.likes']) ?? 0;
-      const readTime = getReadTime(rawContent);
+      const readTime = getReadTime(item.wordCount || rawContent);
       const publishedDate = formatArticleDate(item.publishedAt || item.createdAt || item.updatedAt);
       const key = id || `local-${index}`;
       const rawId = String(item._id || '').trim();
@@ -383,6 +388,24 @@
   });
 
   async function loadArticles() {
+    if (!isPhpRuntime) {
+      try {
+        const staticResponse = await fetch(STATIC_INDEX_URL, {
+          method: 'GET',
+          headers: { Accept: 'application/json' }
+        });
+        if (staticResponse.ok) {
+          const staticPayload = await staticResponse.json();
+          const staticItems = Array.isArray(staticPayload) ? staticPayload.slice(0, 6) : [];
+          if (staticItems.length) {
+            renderArticles(staticItems);
+            initLikeButtons();
+            return;
+          }
+        }
+      } catch (_) {}
+    }
+
     try {
       const response = await fetch(API_URL, {
         method: 'GET',
