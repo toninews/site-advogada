@@ -2,6 +2,7 @@
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $canonical = $scheme . '://' . $host . '/';
+$ogImage = $scheme . '://' . $host . '/images/optimized/partners-1200.webp';
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -17,7 +18,11 @@ $canonical = $scheme . '://' . $host . '/';
   <meta property="og:title" content="Advogada Maria Silva | Direito Civil e Trabalhista">
   <meta property="og:description" content="Atendimento jurídico em Direito Civil e Trabalhista com abordagem personalizada.">
   <meta property="og:url" content="<?php echo htmlspecialchars($canonical, ENT_QUOTES, 'UTF-8'); ?>">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="<?php echo htmlspecialchars($ogImage, ENT_QUOTES, 'UTF-8'); ?>">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="<?php echo htmlspecialchars($ogImage, ENT_QUOTES, 'UTF-8'); ?>">
   <style>
     .header-bg { background: linear-gradient(135deg, #282828, #1b4d3e); min-height: 82px; }
     .site-footer { background: #223830; color: #f5f5f5; }
