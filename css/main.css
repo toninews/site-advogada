@@ -148,7 +148,9 @@ header.container-fluid .brand-name-header {
   white-space: nowrap;
 }
 
-header.container-fluid .brand-name-header-link {
+header.container-fluid .brand-name-header-link,
+header.container-fluid .brand-name-header-link:link,
+header.container-fluid .brand-name-header-link:visited {
   text-decoration: none !important;
 }
 
