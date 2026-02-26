@@ -360,7 +360,7 @@ async function main() {
             <span>${published ? `Publicado em ${esc(published)}` : ""}</span>
             <span>${esc(readTime(content))}</span>
             <span id="article-views-count">${esc(String(views))} visualizações</span>
-            <span>${esc(String(likes))} curtidas</span>
+            <span id="article-likes-count">${esc(String(likes))} curtidas</span>
             <span id="article-comments-count">${esc(String(comments))} comentários</span>
           </div>
           <div class="article-detail-content">${renderContentHtml(content)}</div>
@@ -527,6 +527,7 @@ async function main() {
         const pageInfo = document.getElementById("comments-page-info");
         const commentsCountMeta = document.getElementById("article-comments-count");
         const viewsCountMeta = document.getElementById("article-views-count");
+        const likesCountMeta = document.getElementById("article-likes-count");
         const deleteModal = document.getElementById("comments-delete-modal");
         const deleteCancelBtn = document.getElementById("comments-delete-cancel");
         const deleteConfirmBtn = document.getElementById("comments-delete-confirm");
@@ -662,6 +663,27 @@ async function main() {
             const nextViews = pickCount(payload, "views");
             if (Number.isFinite(nextViews)) {
               viewsCountMeta.textContent = nextViews + " visualizações";
+            }
+          } catch (_) {}
+        }
+
+        async function syncArticleStats() {
+          if (!articleId) return;
+          try {
+            const { response, body } = await requestJson(API_BASE + "/articles/" + encodeURIComponent(articleId), {
+              method: "GET",
+              headers: { Accept: "application/json" },
+            });
+            if (!response.ok || !body) return;
+
+            const latestViews = pickCount(body, "views");
+            if (Number.isFinite(latestViews) && viewsCountMeta) {
+              viewsCountMeta.textContent = latestViews + " visualizações";
+            }
+
+            const latestLikes = pickCount(body, "likes");
+            if (Number.isFinite(latestLikes) && likesCountMeta) {
+              likesCountMeta.textContent = latestLikes + " curtidas";
             }
           } catch (_) {}
         }
@@ -992,6 +1014,7 @@ async function main() {
 
         loadComments();
         registerView();
+        syncArticleStats();
         setLoggedInUI(false);
         if (!MICROSOFT_CLIENT_ID && microsoftBtn) {
           microsoftBtn.style.display = "none";

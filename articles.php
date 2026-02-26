@@ -7,7 +7,9 @@
 
   <div class="row center-xs">
     <div class="col-xs-12 col-md-10">
-      <p id="articles-status" aria-live="polite">Carregando artigos...</p>
+      <p id="articles-status" aria-live="polite">
+        <span class="articles-status-loading"><i aria-hidden="true"></i>Carregando artigos...</span>
+      </p>
       <div id="articles-list" class="articles-grid" role="list"></div>
     </div>
   </div>
@@ -29,6 +31,47 @@
 
   const LIKED_STORAGE_KEY = 'site-advogada-liked-articles-v1';
   const FINGERPRINT_STORAGE_KEY = 'site-advogada-fingerprint-v1';
+  const VIEW_PATHS = [
+    'views',
+    'viewCount',
+    'viewsCount',
+    'totalViews',
+    'stats.views',
+    'stats.viewCount',
+    'metrics.views',
+    'metrics.viewCount',
+    'counters.views',
+    'counters.viewCount',
+    'statistics.views',
+    'analytics.views',
+    'data.views',
+    'data.viewCount',
+    'article.views',
+    'article.viewCount',
+    'result.views',
+    'result.viewCount'
+  ];
+  const LIKE_PATHS = [
+    'likes',
+    'likesCount',
+    'stats.likes',
+    'metrics.likes',
+    'counters.likes',
+    'data.likes',
+    'data.likesCount',
+    'article.likes',
+    'article.likesCount',
+    'result.likes',
+    'result.likesCount'
+  ];
+  const COMMENT_PATHS = [
+    'comments',
+    'commentsCount',
+    'commentCount',
+    'stats.comments',
+    'metrics.comments',
+    'counters.comments'
+  ];
 
   if (!statusEl || !listEl) return;
 
@@ -170,8 +213,7 @@
       return;
     }
 
-    const pendingCommentTotals = [];
-    const pendingViewTotals = [];
+    const syncCandidates = [];
     statusEl.textContent = '';
     listEl.innerHTML = items.map((item, index) => {
       const id = safe(item._id || '');
@@ -179,24 +221,11 @@
       const rawContent = String(item.content || item.excerpt || '');
       const excerpt = safe(rawContent.slice(0, 180) + (rawContent.length > 180 ? '...' : ''));
       const cover = resolveCoverUrl(item.coverImage);
-      const viewsMetric = pickMetric(item, [
-        'views',
-        'viewCount',
-        'viewsCount',
-        'totalViews',
-        'stats.views',
-        'stats.viewCount',
-        'metrics.views',
-        'metrics.viewCount',
-        'counters.views',
-        'counters.viewCount',
-        'statistics.views',
-        'analytics.views'
-      ]);
+      const viewsMetric = pickMetric(item, VIEW_PATHS);
       const views = viewsMetric ?? 0;
-      const commentsMetric = pickMetric(item, ['comments', 'commentsCount', 'commentCount', 'stats.comments', 'metrics.comments', 'counters.comments']);
+      const commentsMetric = pickMetric(item, COMMENT_PATHS);
       const commentsCount = commentsMetric ?? 0;
-      const initialLikes = pickMetric(item, ['likes', 'likesCount', 'stats.likes', 'metrics.likes', 'counters.likes']) ?? 0;
+      const initialLikes = pickMetric(item, LIKE_PATHS) ?? 0;
       const readTime = getReadTime(item.wordCount || rawContent);
       const publishedDate = formatArticleDate(item.publishedAt || item.createdAt || item.updatedAt);
       const key = id || `local-${index}`;
@@ -210,15 +239,12 @@
           : `artigos/${encodeURIComponent(staticSlug)}/`)
         : '#';
 
-      if (commentsMetric === null && rawSlug) {
-        pendingCommentTotals.push({ key, slug: rawSlug });
-      }
-      if (viewsMetric === null && (rawId || rawSlug)) {
-        pendingViewTotals.push({ key, identifier: rawId || rawSlug });
+      if (rawId || rawSlug) {
+        syncCandidates.push({ key, id: rawId, slug: rawSlug });
       }
 
       return `
-        <article class="article-card" role="listitem" data-article-key="${safe(key)}" data-article-id="${id}">
+        <article class="article-card" role="listitem" data-article-key="${safe(key)}" data-article-id="${id}" data-article-slug="${safe(rawSlug)}">
           <a class="article-card-media" href="${articleUrl}" aria-label="Abrir artigo ${title}">
             ${cover
               ? `<img class="article-card-image" src="${cover}" alt="${title}" loading="lazy" decoding="async">`
@@ -267,60 +293,55 @@
       `;
     }).join('');
 
-    if (pendingCommentTotals.length) {
-      Promise.all(pendingCommentTotals.map(async ({ key, slug }) => {
+    if (syncCandidates.length) {
+      Promise.all(syncCandidates.map(async ({ key, id, slug }) => {
         try {
-          const query = new URLSearchParams({
-            slug,
-            page: '1',
-            pageSize: '1'
-          });
-          const response = await fetch(`${API_BASE}/comments?${query.toString()}`, {
-            method: 'GET',
-            headers: { Accept: 'application/json' }
-          });
-          if (!response.ok) return;
-          const payload = await response.json();
-          const total = toInt(payload?.total, NaN);
-          if (!Number.isFinite(total)) return;
-          const el = listEl.querySelector(`[data-comments-key="${CSS.escape(String(key))}"]`);
-          if (el) el.textContent = String(total);
-        } catch (_) {}
-      }));
-    }
+          if (id) {
+            const articleResponse = await fetch(`${API_BASE}/articles/${encodeURIComponent(id)}`, {
+              method: 'GET',
+              headers: { Accept: 'application/json' }
+            });
+            if (articleResponse.ok) {
+              const articlePayload = await articleResponse.json();
+              const viewsValue = pickMetric(articlePayload, VIEW_PATHS);
+              if (Number.isFinite(viewsValue)) {
+                const viewEl = listEl.querySelector(`[data-views-key="${CSS.escape(String(key))}"]`);
+                if (viewEl) viewEl.textContent = String(viewsValue);
+              }
 
-    if (pendingViewTotals.length) {
-      Promise.all(pendingViewTotals.map(async ({ key, identifier }) => {
-        try {
-          const response = await fetch(`${API_BASE}/articles/${encodeURIComponent(identifier)}`, {
-            method: 'GET',
-            headers: { Accept: 'application/json' }
-          });
-          if (!response.ok) return;
-          const payload = await response.json();
-          const viewsValue = pickMetric(payload, [
-            'views',
-            'viewCount',
-            'viewsCount',
-            'totalViews',
-            'stats.views',
-            'stats.viewCount',
-            'metrics.views',
-            'metrics.viewCount',
-            'counters.views',
-            'counters.viewCount',
-            'statistics.views',
-            'analytics.views',
-            'data.views',
-            'data.viewCount',
-            'article.views',
-            'article.viewCount',
-            'result.views',
-            'result.viewCount'
-          ]);
-          if (!Number.isFinite(viewsValue)) return;
-          const el = listEl.querySelector(`[data-views-key="${CSS.escape(String(key))}"]`);
-          if (el) el.textContent = String(viewsValue);
+              const likesValue = pickMetric(articlePayload, LIKE_PATHS);
+              if (Number.isFinite(likesValue)) {
+                const likeBtn = listEl.querySelector(`[data-like-key="${CSS.escape(String(key))}"]`);
+                const state = likesState.get(key);
+                if (likeBtn && state && !state.pending) {
+                  state.count = likesValue;
+                  likesState.set(key, state);
+                  const likeCountEl = likeBtn.querySelector('.article-like-count');
+                  if (likeCountEl) likeCountEl.textContent = String(likesValue);
+                }
+              }
+            }
+          }
+
+          if (slug) {
+            const query = new URLSearchParams({
+              slug,
+              page: '1',
+              pageSize: '1'
+            });
+            const commentsResponse = await fetch(`${API_BASE}/comments?${query.toString()}`, {
+              method: 'GET',
+              headers: { Accept: 'application/json' }
+            });
+            if (commentsResponse.ok) {
+              const commentsPayload = await commentsResponse.json();
+              const total = toInt(commentsPayload?.total, NaN);
+              if (Number.isFinite(total)) {
+                const commentsEl = listEl.querySelector(`[data-comments-key="${CSS.escape(String(key))}"]`);
+                if (commentsEl) commentsEl.textContent = String(total);
+              }
+            }
+          }
         } catch (_) {}
       }));
     }
@@ -355,31 +376,40 @@
 
     const nextLiked = !state.liked;
     const method = nextLiked ? 'POST' : 'DELETE';
+    const prevLiked = state.liked;
+    const prevCount = state.count;
+
+    state.liked = nextLiked;
+    state.count = Math.max(0, state.count + (nextLiked ? 1 : -1));
     state.pending = true;
     likesState.set(key, state);
     button.disabled = true;
 
+    likedStorage[articleId] = state.liked;
+    saveLikedStorage();
+
+    const countEl = button.querySelector('.article-like-count');
+    if (countEl) countEl.textContent = String(state.count);
+    button.classList.toggle('is-liked', state.liked);
+    button.classList.remove('is-animating');
+    void button.offsetWidth;
+    button.classList.add('is-animating');
+
     try {
       const payload = await sendLikeEvent(articleId, method);
       const serverLikes = pickCount(payload, 'likes');
-
-      state.liked = nextLiked;
-      state.count = Number.isFinite(serverLikes)
-        ? serverLikes
-        : Math.max(0, state.count + (state.liked ? 1 : -1));
-
-      likedStorage[articleId] = state.liked;
-      saveLikedStorage();
-
-      const countEl = button.querySelector('.article-like-count');
-      if (countEl) countEl.textContent = String(state.count);
-      button.classList.toggle('is-liked', state.liked);
-
-      button.classList.remove('is-animating');
-      void button.offsetWidth;
-      button.classList.add('is-animating');
+      if (Number.isFinite(serverLikes)) {
+        state.count = serverLikes;
+        if (countEl) countEl.textContent = String(state.count);
+      }
     } catch (error) {
       console.error('Erro ao enviar like:', error);
+      state.liked = prevLiked;
+      state.count = prevCount;
+      likedStorage[articleId] = state.liked;
+      saveLikedStorage();
+      if (countEl) countEl.textContent = String(state.count);
+      button.classList.toggle('is-liked', state.liked);
     } finally {
       state.pending = false;
       likesState.set(key, state);
@@ -388,6 +418,7 @@
   });
 
   async function loadArticles() {
+    statusEl.innerHTML = '<span class="articles-status-loading"><i aria-hidden="true"></i>Carregando artigos...</span>';
     if (!isPhpRuntime) {
       try {
         const staticResponse = await fetch(STATIC_INDEX_URL, {

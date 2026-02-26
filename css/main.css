@@ -1253,6 +1253,28 @@ header.container-fluid .brand-name-header {
   color: #223830;
 }
 
+.articles-status-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 600;
+}
+
+.articles-status-loading i {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(27, 77, 62, 0.25);
+  border-top-color: #1b4d3e;
+  animation: articles-loading-spin 0.75s linear infinite;
+}
+
+@keyframes articles-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .articles-grid {
   display: grid !important;
   grid-template-columns: 1fr !important;
