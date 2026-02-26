@@ -31,6 +31,7 @@
 
   const LIKED_STORAGE_KEY = 'site-advogada-liked-articles-v1';
   const FINGERPRINT_STORAGE_KEY = 'site-advogada-fingerprint-v1';
+  const METRICS_STORAGE_KEY = 'site-advogada-article-metrics-v1';
   const VIEW_PATHS = [
     'views',
     'viewCount',
@@ -131,6 +132,55 @@
     }
   })();
 
+  const metricsStorage = (() => {
+    try {
+      const raw = localStorage.getItem(METRICS_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (_) {
+      return {};
+    }
+  })();
+
+  function saveMetricsStorage() {
+    try {
+      localStorage.setItem(METRICS_STORAGE_KEY, JSON.stringify(metricsStorage));
+    } catch (_) {}
+  }
+
+  function buildMetricKeys(articleId, articleSlug) {
+    const keys = [];
+    const id = String(articleId || '').trim();
+    const slug = String(articleSlug || '').trim();
+    if (id) keys.push(`id:${id}`);
+    if (slug) keys.push(`slug:${slug}`);
+    return keys;
+  }
+
+  function readCachedMetrics(articleId, articleSlug) {
+    const keys = buildMetricKeys(articleId, articleSlug);
+    for (const key of keys) {
+      const row = metricsStorage[key];
+      if (row && typeof row === 'object') return row;
+    }
+    return null;
+  }
+
+  function mergeCachedMetrics(articleId, articleSlug, patch) {
+    const keys = buildMetricKeys(articleId, articleSlug);
+    if (!keys.length || !patch || typeof patch !== 'object') return;
+    const cleanPatch = {};
+    if (Number.isFinite(Number(patch.views))) cleanPatch.views = toInt(patch.views, 0);
+    if (Number.isFinite(Number(patch.likes))) cleanPatch.likes = toInt(patch.likes, 0);
+    if (Number.isFinite(Number(patch.comments))) cleanPatch.comments = toInt(patch.comments, 0);
+    if (!Object.keys(cleanPatch).length) return;
+    for (const key of keys) {
+      const current = metricsStorage[key] && typeof metricsStorage[key] === 'object' ? metricsStorage[key] : {};
+      metricsStorage[key] = { ...current, ...cleanPatch, updatedAt: Date.now() };
+    }
+    saveMetricsStorage();
+  }
+
   function saveLikedStorage() {
     try {
       localStorage.setItem(LIKED_STORAGE_KEY, JSON.stringify(likedStorage));
@@ -221,16 +271,23 @@
       const rawContent = String(item.content || item.excerpt || '');
       const excerpt = safe(rawContent.slice(0, 180) + (rawContent.length > 180 ? '...' : ''));
       const cover = resolveCoverUrl(item.coverImage);
+      const rawId = String(item._id || '').trim();
+      const rawSlug = String(item.slug || '').trim();
+      const cachedMetrics = readCachedMetrics(rawId, rawSlug);
       const viewsMetric = pickMetric(item, VIEW_PATHS);
-      const views = viewsMetric ?? 0;
+      const views = Number.isFinite(toInt(cachedMetrics?.views, NaN))
+        ? toInt(cachedMetrics?.views, 0)
+        : (viewsMetric ?? 0);
       const commentsMetric = pickMetric(item, COMMENT_PATHS);
-      const commentsCount = commentsMetric ?? 0;
-      const initialLikes = pickMetric(item, LIKE_PATHS) ?? 0;
+      const commentsCount = Number.isFinite(toInt(cachedMetrics?.comments, NaN))
+        ? toInt(cachedMetrics?.comments, 0)
+        : (commentsMetric ?? 0);
+      const initialLikes = Number.isFinite(toInt(cachedMetrics?.likes, NaN))
+        ? toInt(cachedMetrics?.likes, 0)
+        : (pickMetric(item, LIKE_PATHS) ?? 0);
       const readTime = getReadTime(item.wordCount || rawContent);
       const publishedDate = formatArticleDate(item.publishedAt || item.createdAt || item.updatedAt);
       const key = id || `local-${index}`;
-      const rawId = String(item._id || '').trim();
-      const rawSlug = String(item.slug || '').trim();
       const slugParam = rawSlug ? `&slug=${encodeURIComponent(rawSlug)}` : '';
       const staticSlug = slugifyPath(rawSlug || (rawId ? `id-${rawId}` : ''));
       const articleUrl = rawId
@@ -307,6 +364,7 @@
               if (Number.isFinite(viewsValue)) {
                 const viewEl = listEl.querySelector(`[data-views-key="${CSS.escape(String(key))}"]`);
                 if (viewEl) viewEl.textContent = String(viewsValue);
+                mergeCachedMetrics(id, slug, { views: viewsValue });
               }
 
               const likesValue = pickMetric(articlePayload, LIKE_PATHS);
@@ -319,6 +377,7 @@
                   const likeCountEl = likeBtn.querySelector('.article-like-count');
                   if (likeCountEl) likeCountEl.textContent = String(likesValue);
                 }
+                mergeCachedMetrics(id, slug, { likes: likesValue });
               }
             }
           }
@@ -339,6 +398,7 @@
               if (Number.isFinite(total)) {
                 const commentsEl = listEl.querySelector(`[data-comments-key="${CSS.escape(String(key))}"]`);
                 if (commentsEl) commentsEl.textContent = String(total);
+                mergeCachedMetrics(id, slug, { comments: total });
               }
             }
           }
@@ -366,6 +426,7 @@
 
     const key = button.dataset.likeKey;
     const articleId = String(button.dataset.articleId || '').trim();
+    const articleSlug = String(button.closest('.article-card')?.dataset.articleSlug || '').trim();
     if (!key || !likesState.has(key) || !articleId) return;
 
     event.preventDefault();
@@ -391,6 +452,7 @@
     const countEl = button.querySelector('.article-like-count');
     if (countEl) countEl.textContent = String(state.count);
     button.classList.toggle('is-liked', state.liked);
+    mergeCachedMetrics(articleId, articleSlug, { likes: state.count });
     button.classList.remove('is-animating');
     void button.offsetWidth;
     button.classList.add('is-animating');
@@ -401,6 +463,7 @@
       if (Number.isFinite(serverLikes)) {
         state.count = serverLikes;
         if (countEl) countEl.textContent = String(state.count);
+        mergeCachedMetrics(articleId, articleSlug, { likes: state.count });
       }
     } catch (error) {
       console.error('Erro ao enviar like:', error);
@@ -410,6 +473,7 @@
       saveLikedStorage();
       if (countEl) countEl.textContent = String(state.count);
       button.classList.toggle('is-liked', state.liked);
+      mergeCachedMetrics(articleId, articleSlug, { likes: state.count });
     } finally {
       state.pending = false;
       likesState.set(key, state);

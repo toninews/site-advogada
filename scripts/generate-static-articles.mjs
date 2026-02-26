@@ -537,6 +537,7 @@ async function main() {
         let total = 0;
         let isLoggedIn = false;
         let msalInstance = null;
+        const METRICS_STORAGE_KEY = "site-advogada-article-metrics-v1";
 
         function toInt(value, fallback = 0) {
           const parsed = Number.parseInt(value, 10);
@@ -548,6 +549,76 @@ async function main() {
             .split("; ")
             .find((item) => item.startsWith(name + "="));
           return row ? decodeURIComponent(row.split("=").slice(1).join("=")) : "";
+        }
+
+        function buildMetricKeys() {
+          const keys = [];
+          const id = String(articleId || "").trim();
+          const slug = String(articleSlug || "").trim();
+          if (id) keys.push("id:" + id);
+          if (slug) keys.push("slug:" + slug);
+          return keys;
+        }
+
+        function readMetricsStorage() {
+          try {
+            const raw = localStorage.getItem(METRICS_STORAGE_KEY);
+            const parsed = raw ? JSON.parse(raw) : {};
+            return parsed && typeof parsed === "object" ? parsed : {};
+          } catch (_) {
+            return {};
+          }
+        }
+
+        function saveMetricsStorage(next) {
+          try {
+            localStorage.setItem(METRICS_STORAGE_KEY, JSON.stringify(next || {}));
+          } catch (_) {}
+        }
+
+        function writeCachedMetrics(patch) {
+          if (!patch || typeof patch !== "object") return;
+          const sanitized = {};
+          if (Number.isFinite(toInt(patch.views, NaN))) sanitized.views = toInt(patch.views, 0);
+          if (Number.isFinite(toInt(patch.likes, NaN))) sanitized.likes = toInt(patch.likes, 0);
+          if (Number.isFinite(toInt(patch.comments, NaN))) sanitized.comments = toInt(patch.comments, 0);
+          if (!Object.keys(sanitized).length) return;
+
+          const keys = buildMetricKeys();
+          if (!keys.length) return;
+          const storage = readMetricsStorage();
+          for (const key of keys) {
+            const current = storage[key] && typeof storage[key] === "object" ? storage[key] : {};
+            storage[key] = { ...current, ...sanitized, updatedAt: Date.now() };
+          }
+          saveMetricsStorage(storage);
+        }
+
+        function applyCachedMetricsToMeta() {
+          const keys = buildMetricKeys();
+          if (!keys.length) return;
+          const storage = readMetricsStorage();
+          let cached = null;
+          for (const key of keys) {
+            const row = storage[key];
+            if (row && typeof row === "object") {
+              cached = row;
+              break;
+            }
+          }
+          if (!cached) return;
+          const cachedViews = toInt(cached.views, NaN);
+          if (Number.isFinite(cachedViews) && viewsCountMeta) {
+            viewsCountMeta.textContent = cachedViews + " visualizações";
+          }
+          const cachedLikes = toInt(cached.likes, NaN);
+          if (Number.isFinite(cachedLikes) && likesCountMeta) {
+            likesCountMeta.textContent = cachedLikes + " curtidas";
+          }
+          const cachedComments = toInt(cached.comments, NaN);
+          if (Number.isFinite(cachedComments) && commentsCountMeta) {
+            commentsCountMeta.textContent = cachedComments + " comentários";
+          }
         }
 
         function escHtml(value) {
@@ -663,6 +734,7 @@ async function main() {
             const nextViews = pickCount(payload, "views");
             if (Number.isFinite(nextViews)) {
               viewsCountMeta.textContent = nextViews + " visualizações";
+              writeCachedMetrics({ views: nextViews });
             }
           } catch (_) {}
         }
@@ -685,6 +757,7 @@ async function main() {
             if (Number.isFinite(latestLikes) && likesCountMeta) {
               likesCountMeta.textContent = latestLikes + " curtidas";
             }
+            writeCachedMetrics({ views: latestViews, likes: latestLikes });
           } catch (_) {}
         }
 
@@ -742,6 +815,7 @@ async function main() {
           if (commentsCountMeta) {
             commentsCountMeta.textContent = total + " comentários";
           }
+          writeCachedMetrics({ comments: total });
           prevBtn.disabled = page <= 1;
           nextBtn.disabled = page >= totalPages;
         }
@@ -1013,6 +1087,7 @@ async function main() {
         });
 
         loadComments();
+        applyCachedMetricsToMeta();
         registerView();
         syncArticleStats();
         setLoggedInUI(false);
