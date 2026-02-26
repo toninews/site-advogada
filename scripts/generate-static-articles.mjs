@@ -136,6 +136,7 @@ async function main() {
     const published = formatDate(item.publishedAt || item.createdAt || item.updatedAt);
     const views = Number(item.views ?? item.viewCount ?? 0) || 0;
     const likes = Number(item.likes ?? item.likesCount ?? 0) || 0;
+    const comments = Number(item.comments ?? item.commentsCount ?? item.commentCount ?? 0) || 0;
 
     const html = `<!doctype html>
 <html lang="pt-BR">
@@ -238,13 +239,14 @@ async function main() {
           <div class="article-detail-meta">
             <span>${published ? `Publicado em ${esc(published)}` : ""}</span>
             <span>${esc(readTime(content))}</span>
-            <span>${esc(String(views))} visualizações</span>
+            <span id="article-views-count">${esc(String(views))} visualizações</span>
             <span>${esc(String(likes))} curtidas</span>
+            <span id="article-comments-count">${esc(String(comments))} comentários</span>
           </div>
           <div class="article-detail-content">${renderContentHtml(content)}</div>
         </div>
       </article>
-      <section class="article-comments" id="article-comments" data-article-slug="${esc(slug)}" aria-labelledby="comments-title">
+      <section class="article-comments" id="article-comments" data-article-slug="${esc(slug)}" data-article-id="${esc(id)}" aria-labelledby="comments-title">
         <h2 id="comments-title">Comentários</h2>
         <p class="article-comments-note">Entre com sua conta para comentar. Os comentários passam por regras anti-spam e moderação.</p>
         <div class="comments-auth-box">
@@ -361,6 +363,7 @@ async function main() {
         if (!root) return;
 
         const articleSlug = root.getAttribute("data-article-slug") || "";
+        const articleId = root.getAttribute("data-article-id") || "";
         if (!articleSlug) return;
 
         const API_BASE = ["localhost", "127.0.0.1"].includes(window.location.hostname)
@@ -379,11 +382,18 @@ async function main() {
         const prevBtn = document.getElementById("comments-prev");
         const nextBtn = document.getElementById("comments-next");
         const pageInfo = document.getElementById("comments-page-info");
+        const commentsCountMeta = document.getElementById("article-comments-count");
+        const viewsCountMeta = document.getElementById("article-views-count");
 
         let page = 1;
         const pageSize = 10;
         let total = 0;
         let isLoggedIn = false;
+
+        function toInt(value, fallback = 0) {
+          const parsed = Number.parseInt(value, 10);
+          return Number.isFinite(parsed) ? parsed : fallback;
+        }
 
         function getCookie(name) {
           const row = document.cookie
@@ -426,6 +436,56 @@ async function main() {
           const isJson = (response.headers.get("content-type") || "").includes("application/json");
           const body = isJson ? await response.json() : null;
           return { response, body };
+        }
+
+        function getFingerprint() {
+          const storageKey = "site-advogada-fingerprint-v1";
+          try {
+            const existing = localStorage.getItem(storageKey);
+            if (existing) return existing;
+            const generated = (window.crypto && window.crypto.randomUUID)
+              ? window.crypto.randomUUID()
+              : String(Date.now()) + "-" + Math.random().toString(36).slice(2, 12);
+            localStorage.setItem(storageKey, generated);
+            return generated;
+          } catch (_) {
+            return "anon-" + Date.now() + "-" + Math.random().toString(36).slice(2, 12);
+          }
+        }
+
+        function pickCount(payload, key) {
+          if (!payload || typeof payload !== "object") return null;
+          const candidates = [
+            payload[key],
+            payload?.data?.[key],
+            payload?.article?.[key],
+            payload?.result?.[key],
+          ];
+          for (const value of candidates) {
+            const parsed = toInt(value, NaN);
+            if (Number.isFinite(parsed)) return parsed;
+          }
+          return null;
+        }
+
+        async function registerView() {
+          if (!articleId || !viewsCountMeta) return;
+          try {
+            const response = await fetch(API_BASE + "/articles/" + encodeURIComponent(articleId) + "/view", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({ fingerprint: getFingerprint() }),
+            });
+            if (!response.ok) return;
+            const payload = await response.json();
+            const nextViews = pickCount(payload, "views");
+            if (Number.isFinite(nextViews)) {
+              viewsCountMeta.textContent = nextViews + " visualizações";
+            }
+          } catch (_) {}
         }
 
         function buildWriteHeaders() {
@@ -479,6 +539,9 @@ async function main() {
         function updatePagination() {
           const totalPages = Math.max(1, Math.ceil(total / pageSize));
           pageInfo.textContent = "Página " + page + " de " + totalPages + " • " + total + " comentários";
+          if (commentsCountMeta) {
+            commentsCountMeta.textContent = total + " comentários";
+          }
           prevBtn.disabled = page <= 1;
           nextBtn.disabled = page >= totalPages;
         }
@@ -638,14 +701,30 @@ async function main() {
 
         async function logout() {
           try {
-            const { response } = await requestJson(API_BASE + "/login/logout", {
-              method: "POST",
-              headers: buildWriteHeaders(),
-            });
-            if (!response.ok) {
+            const logoutEndpoints = ["/login/logout", "/login/authLogout"];
+            let ok = false;
+            let unauthorized = false;
+
+            for (const endpoint of logoutEndpoints) {
+              const { response } = await requestJson(API_BASE + endpoint, {
+                method: "POST",
+                headers: buildWriteHeaders(),
+              });
+              if (response.status === 401) {
+                unauthorized = true;
+                break;
+              }
+              if (response.ok) {
+                ok = true;
+                break;
+              }
+            }
+
+            if (!ok && !unauthorized) {
               setFeedback("Não foi possível encerrar a sessão agora.", true);
               return;
             }
+
             if (window.google && window.google.accounts && window.google.accounts.id) {
               window.google.accounts.id.disableAutoSelect();
             }
@@ -667,6 +746,7 @@ async function main() {
         });
 
         loadComments();
+        registerView();
         setLoggedInUI(false);
         setTimeout(initGoogleLogin, 0);
         window.addEventListener("load", initGoogleLogin);

@@ -1334,6 +1334,12 @@ header.container-fluid .brand-name-header {
   border-top: 1px solid #d4d4d4;
 }
 
+.article-card-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
 .article-stat {
   display: inline-flex;
   align-items: center;
@@ -1344,6 +1350,12 @@ header.container-fluid .brand-name-header {
 .article-views svg {
   width: 18px;
   height: 18px;
+  fill: currentColor;
+}
+
+.article-comments svg {
+  width: 17px;
+  height: 17px;
   fill: currentColor;
 }
 

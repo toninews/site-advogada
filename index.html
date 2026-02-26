@@ -727,6 +727,24 @@ document.addEventListener("DOMContentLoaded", () => {
     return Number.isFinite(parsed) ? parsed : fallback;
   };
 
+  function pickMetric(source, paths) {
+    if (!source || typeof source !== 'object') return null;
+    for (const path of paths) {
+      const parts = String(path).split('.');
+      let current = source;
+      for (const part of parts) {
+        if (!current || typeof current !== 'object' || !(part in current)) {
+          current = undefined;
+          break;
+        }
+        current = current[part];
+      }
+      const parsed = toInt(current, NaN);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+    return null;
+  }
+
   function getFingerprint() {
     try {
       const existing = localStorage.getItem(FINGERPRINT_STORAGE_KEY);
@@ -831,6 +849,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const pendingCommentTotals = [];
+    const pendingViewTotals = [];
     statusEl.textContent = '';
     listEl.innerHTML = items.map((item, index) => {
       const id = safe(item._id || '');
@@ -838,8 +858,24 @@ document.addEventListener("DOMContentLoaded", () => {
       const rawContent = String(item.content || '');
       const excerpt = safe(rawContent.slice(0, 180) + (rawContent.length > 180 ? '...' : ''));
       const cover = resolveCoverUrl(item.coverImage);
-      const views = toInt(item.views ?? item.viewCount, 0);
-      const initialLikes = toInt(item.likes ?? item.likesCount, 0);
+      const viewsMetric = pickMetric(item, [
+        'views',
+        'viewCount',
+        'viewsCount',
+        'totalViews',
+        'stats.views',
+        'stats.viewCount',
+        'metrics.views',
+        'metrics.viewCount',
+        'counters.views',
+        'counters.viewCount',
+        'statistics.views',
+        'analytics.views'
+      ]);
+      const views = viewsMetric ?? 0;
+      const commentsMetric = pickMetric(item, ['comments', 'commentsCount', 'commentCount', 'stats.comments', 'metrics.comments', 'counters.comments']);
+      const commentsCount = commentsMetric ?? 0;
+      const initialLikes = pickMetric(item, ['likes', 'likesCount', 'stats.likes', 'metrics.likes', 'counters.likes']) ?? 0;
       const readTime = getReadTime(rawContent);
       const publishedDate = formatArticleDate(item.publishedAt || item.createdAt || item.updatedAt);
       const key = id || `local-${index}`;
@@ -852,6 +888,13 @@ document.addEventListener("DOMContentLoaded", () => {
           ? `artigo.php?id=${encodeURIComponent(rawId)}${slugParam}`
           : `artigos/${encodeURIComponent(staticSlug)}/`)
         : '#';
+
+      if (commentsMetric === null && rawSlug) {
+        pendingCommentTotals.push({ key, slug: rawSlug });
+      }
+      if (viewsMetric === null && (rawId || rawSlug)) {
+        pendingViewTotals.push({ key, identifier: rawId || rawSlug });
+      }
 
       return `
         <article class="article-card" role="listitem" data-article-key="${safe(key)}" data-article-id="${id}">
@@ -869,12 +912,20 @@ document.addEventListener("DOMContentLoaded", () => {
             <p class="article-card-excerpt">${excerpt}</p>
           </div>
           <div class="article-card-footer">
-            <span class="article-stat article-views" aria-label="${views} visualizações">
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M12 5c5.6 0 9.8 4.9 11 6.5.2.3.2.7 0 1C21.8 14 17.6 19 12 19S2.2 14 1 12.5a.8.8 0 0 1 0-1C2.2 9.9 6.4 5 12 5zm0 2C8 7 4.8 10.3 3.1 12 4.8 13.7 8 17 12 17s7.2-3.3 8.9-5C19.2 10.3 16 7 12 7zm0 2.2a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6z"/>
-              </svg>
-              <span class="article-views-count">${views}</span>
-            </span>
+            <div class="article-card-stats">
+              <span class="article-stat article-views" aria-label="${views} visualizações">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M12 5c5.6 0 9.8 4.9 11 6.5.2.3.2.7 0 1C21.8 14 17.6 19 12 19S2.2 14 1 12.5a.8.8 0 0 1 0-1C2.2 9.9 6.4 5 12 5zm0 2C8 7 4.8 10.3 3.1 12 4.8 13.7 8 17 12 17s7.2-3.3 8.9-5C19.2 10.3 16 7 12 7zm0 2.2a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6z"/>
+                </svg>
+                <span class="article-views-count" data-views-key="${safe(key)}">${views}</span>
+              </span>
+              <span class="article-stat article-comments" aria-label="${commentsCount} comentários">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm1 3v7h14V7H5z"/>
+                </svg>
+                <span class="article-comments-count" data-comments-key="${safe(key)}">${commentsCount}</span>
+              </span>
+            </div>
             <button
               class="article-like-btn"
               type="button"
@@ -894,6 +945,64 @@ document.addEventListener("DOMContentLoaded", () => {
         </article>
       `;
     }).join('');
+
+    if (pendingCommentTotals.length) {
+      Promise.all(pendingCommentTotals.map(async ({ key, slug }) => {
+        try {
+          const query = new URLSearchParams({
+            slug,
+            page: '1',
+            pageSize: '1'
+          });
+          const response = await fetch(`${API_BASE}/comments?${query.toString()}`, {
+            method: 'GET',
+            headers: { Accept: 'application/json' }
+          });
+          if (!response.ok) return;
+          const payload = await response.json();
+          const total = toInt(payload?.total, NaN);
+          if (!Number.isFinite(total)) return;
+          const el = listEl.querySelector(`[data-comments-key="${CSS.escape(String(key))}"]`);
+          if (el) el.textContent = String(total);
+        } catch (_) {}
+      }));
+    }
+
+    if (pendingViewTotals.length) {
+      Promise.all(pendingViewTotals.map(async ({ key, identifier }) => {
+        try {
+          const response = await fetch(`${API_BASE}/articles/${encodeURIComponent(identifier)}`, {
+            method: 'GET',
+            headers: { Accept: 'application/json' }
+          });
+          if (!response.ok) return;
+          const payload = await response.json();
+          const viewsValue = pickMetric(payload, [
+            'views',
+            'viewCount',
+            'viewsCount',
+            'totalViews',
+            'stats.views',
+            'stats.viewCount',
+            'metrics.views',
+            'metrics.viewCount',
+            'counters.views',
+            'counters.viewCount',
+            'statistics.views',
+            'analytics.views',
+            'data.views',
+            'data.viewCount',
+            'article.views',
+            'article.viewCount',
+            'result.views',
+            'result.viewCount'
+          ]);
+          if (!Number.isFinite(viewsValue)) return;
+          const el = listEl.querySelector(`[data-views-key="${CSS.escape(String(key))}"]`);
+          if (el) el.textContent = String(viewsValue);
+        } catch (_) {}
+      }));
+    }
   }
 
   function initLikeButtons() {
