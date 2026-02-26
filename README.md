@@ -10,6 +10,10 @@ O projeto combina:
 - interface responsiva com abordagem mobile-first;
 - práticas de produção (SEO, cache e fluxo de deploy).
 
+### Live Demo
+
+- `https://site-advogada-eosin.vercel.app`
+
 ### Objetivo do Projeto
 
 Este projeto foi desenvolvido com dois objetivos complementares:
@@ -193,6 +197,10 @@ The project combines:
 - conversion-oriented UX (WhatsApp and contact funnel);
 - responsive UI with mobile-first behavior;
 - practical production concerns (SEO, caching, and deployment flow).
+
+### Live Demo
+
+- `https://site-advogada-eosin.vercel.app`
 
 ### Project Purpose
 
