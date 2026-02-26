@@ -20,6 +20,8 @@ cat > index.html <<'HTML_HEAD'
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="shortcut icon" href="favicon.svg">
   <title>Advogada Maria Silva | Direito Civil e Trabalhista</title>
   <meta name="description" content="Advogada Maria Silva especializada em Direito Civil e Trabalhista. Atendimento jurídico com foco em orientação clara e estratégia eficiente.">
   <meta name="robots" content="index,follow">
