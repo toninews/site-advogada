@@ -211,6 +211,26 @@ async function main() {
       .article-detail-body { padding: 1.2rem 1.3rem 1.5rem; }
       .article-detail-title { margin: 0 0 0.7rem; color: #282828; line-height: 1.15; }
       .article-detail-meta { display: flex; flex-wrap: wrap; gap: 0.8rem; margin: 0 0 1rem; color: #223830; font-family: "Raleway", sans-serif; font-size: 0.9rem; font-weight: 600; }
+      .article-share { margin: 0 0 1.1rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }
+      .article-share-label { margin: 0 0.2rem 0 0; color: #223830; font-family: "Raleway", sans-serif; font-size: 0.9rem; font-weight: 700; }
+      .article-share-btn {
+        border: 1px solid #d0d0d0;
+        background: #fff;
+        color: #223830;
+        border-radius: 999px;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.8rem;
+        font-family: "Raleway", sans-serif;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .article-share-btn:hover,
+      .article-share-btn:focus-visible,
+      .article-share-btn:active {
+        background: #f5f5f5;
+        border-color: #b9b9b9;
+      }
       .article-detail-content p { margin: 0 0 1rem; line-height: 1.75; color: #282828; }
       .article-comments { margin-top: 1rem; background: #fff; border: 1px solid rgba(182, 135, 34, 0.35); border-radius: 14px; padding: 1rem 1rem 1.15rem; }
       .article-comments h2 { margin: 0 0 0.65rem; color: #223830; font-size: 1.25rem; }
@@ -362,6 +382,14 @@ async function main() {
             <span id="article-views-count">${esc(String(views))} visualizações</span>
             <span id="article-likes-count">${esc(String(likes))} curtidas</span>
             <span id="article-comments-count">${esc(String(comments))} comentários</span>
+          </div>
+          <div class="article-share" aria-label="Compartilhar artigo">
+            <span class="article-share-label">Compartilhar:</span>
+            <button id="article-share-native" class="article-share-btn" type="button">Compartilhar</button>
+            <a id="article-share-whatsapp" class="article-share-btn" href="#" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            <a id="article-share-linkedin" class="article-share-btn" href="#" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a id="article-share-x" class="article-share-btn" href="#" target="_blank" rel="noopener noreferrer">X</a>
+            <button id="article-share-copy" class="article-share-btn" type="button">Copiar link</button>
           </div>
           <div class="article-detail-content">${renderContentHtml(content)}</div>
         </div>
@@ -528,6 +556,11 @@ async function main() {
         const commentsCountMeta = document.getElementById("article-comments-count");
         const viewsCountMeta = document.getElementById("article-views-count");
         const likesCountMeta = document.getElementById("article-likes-count");
+        const shareNativeBtn = document.getElementById("article-share-native");
+        const shareWhatsappLink = document.getElementById("article-share-whatsapp");
+        const shareLinkedinLink = document.getElementById("article-share-linkedin");
+        const shareXLink = document.getElementById("article-share-x");
+        const shareCopyBtn = document.getElementById("article-share-copy");
         const deleteModal = document.getElementById("comments-delete-modal");
         const deleteCancelBtn = document.getElementById("comments-delete-cancel");
         const deleteConfirmBtn = document.getElementById("comments-delete-confirm");
@@ -633,6 +666,56 @@ async function main() {
         function setFeedback(message, isError) {
           feedback.textContent = message || "";
           feedback.style.color = isError ? "#b03a2e" : "#223830";
+        }
+
+        function setupShareActions() {
+          const shareUrl = window.location.href;
+          const shareText = "Confira este artigo: " + (document.getElementById("article-title")?.textContent || document.title || "");
+          if (shareWhatsappLink) {
+            shareWhatsappLink.href = "https://wa.me/?text=" + encodeURIComponent(shareText + " " + shareUrl);
+          }
+          if (shareLinkedinLink) {
+            shareLinkedinLink.href = "https://www.linkedin.com/sharing/share-offsite/?url=" + encodeURIComponent(shareUrl);
+          }
+          if (shareXLink) {
+            shareXLink.href = "https://x.com/intent/tweet?text=" + encodeURIComponent(shareText) + "&url=" + encodeURIComponent(shareUrl);
+          }
+
+          if (shareNativeBtn) {
+            if (!navigator.share) {
+              shareNativeBtn.style.display = "none";
+            } else {
+              shareNativeBtn.addEventListener("click", async () => {
+                try {
+                  await navigator.share({
+                    title: document.title || "Artigo",
+                    text: shareText,
+                    url: shareUrl,
+                  });
+                } catch (_) {}
+              });
+            }
+          }
+
+          if (shareCopyBtn) {
+            shareCopyBtn.addEventListener("click", async () => {
+              try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  await navigator.clipboard.writeText(shareUrl);
+                } else {
+                  const input = document.createElement("input");
+                  input.value = shareUrl;
+                  document.body.appendChild(input);
+                  input.select();
+                  document.execCommand("copy");
+                  document.body.removeChild(input);
+                }
+                setFeedback("Link copiado para a área de transferência.", false);
+              } catch (_) {
+                setFeedback("Não foi possível copiar o link agora.", true);
+              }
+            });
+          }
         }
 
         function setAuthStatus(message) {
@@ -1087,6 +1170,7 @@ async function main() {
         });
 
         loadComments();
+        setupShareActions();
         applyCachedMetricsToMeta();
         registerView();
         syncArticleStats();
