@@ -83,6 +83,11 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- domain/areas.domain.js
 |     |- application/init-areas-feedback.usecase.js
 |     |- ui/areas.controller.js
+|  |- about/
+|     |- app.js
+|     |- domain/about.domain.js
+|     |- application/init-about-reveal.usecase.js
+|     |- ui/about.controller.js
 |- app/
 |  |- shared/
 |  |  |- domain/domain-error.php
@@ -111,6 +116,8 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- services.usecase.test.mjs
 |     |- areas.domain.test.mjs
 |     |- areas.usecase.test.mjs
+|     |- about.domain.test.mjs
+|     |- about.usecase.test.mjs
 |- images/
 |- videos/
 |- .env.example
@@ -273,6 +280,14 @@ O feedback dos botões \"Saiba mais\" foi extraído para camadas leves:
 - `ui/controller`: binding de clique e controle de visibilidade da mensagem.
 - `app.js`: bootstrap da feature.
 
+### Refatoração Clean (Fase 4.3) - Módulo About
+
+O reveal dos elementos da seção \"Quem Somos\" foi extraído para camadas leves:
+- `domain`: seletor alvo, classe de reveal e opções do observer.
+- `application/usecase`: plano de inicialização do reveal.
+- `ui/controller`: integração com `IntersectionObserver` e fallback sem observer.
+- `app.js`: bootstrap da feature.
+
 Fluxo prático de publicação:
 1. Publicar/atualizar artigo no backend/CMS.
 2. Disparar novo build/deploy na Vercel (push/commit ou deploy hook).
@@ -422,6 +437,11 @@ In practice, this website is the public presentation layer while the article man
 |     |- domain/areas.domain.js
 |     |- application/init-areas-feedback.usecase.js
 |     |- ui/areas.controller.js
+|  |- about/
+|     |- app.js
+|     |- domain/about.domain.js
+|     |- application/init-about-reveal.usecase.js
+|     |- ui/about.controller.js
 |- app/
 |  |- shared/
 |  |  |- domain/domain-error.php
@@ -450,6 +470,8 @@ In practice, this website is the public presentation layer while the article man
 |     |- services.usecase.test.mjs
 |     |- areas.domain.test.mjs
 |     |- areas.usecase.test.mjs
+|     |- about.domain.test.mjs
+|     |- about.usecase.test.mjs
 |- images/
 |- videos/
 |- .env.example
@@ -600,6 +622,14 @@ The \"Learn more\" feedback flow in the areas section was extracted into lightwe
 - `domain`: feedback message content and display delay.
 - `application/usecase`: feedback initial state.
 - `ui/controller`: click binding and feedback visibility behavior.
+- `app.js`: feature bootstrap.
+
+### Clean Refactor (Phase 4.3) - About Module
+
+The \"Who we are\" reveal flow was extracted into lightweight layers:
+- `domain`: target selector, reveal class and observer options.
+- `application/usecase`: reveal initialization plan.
+- `ui/controller`: `IntersectionObserver` integration with no-observer fallback.
 - `app.js`: feature bootstrap.
 
 Practical publishing flow:

@@ -42,16 +42,7 @@
   </div>
 </section>
 
-<script>
-  const elements = document.querySelectorAll('.hidden');
-
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('show');
-      }
-    });
-  });
-
-  elements.forEach(el => observer.observe(el));
-</script>
+<script src="scripts/about/domain/about.domain.js" defer></script>
+<script src="scripts/about/application/init-about-reveal.usecase.js" defer></script>
+<script src="scripts/about/ui/about.controller.js" defer></script>
+<script src="scripts/about/app.js" defer></script>

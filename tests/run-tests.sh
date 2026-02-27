@@ -20,5 +20,7 @@ node tests/js/services.domain.test.mjs
 node tests/js/services.usecase.test.mjs
 node tests/js/areas.domain.test.mjs
 node tests/js/areas.usecase.test.mjs
+node tests/js/about.domain.test.mjs
+node tests/js/about.usecase.test.mjs
 
 echo "All tests passed."
