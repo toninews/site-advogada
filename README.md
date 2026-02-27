@@ -58,11 +58,37 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |- footer.php
 |- scripts/
 |  |- generate-static-articles.mjs
+|  |- articles/
+|     |- app.js
+|     |- domain/article.domain.js
+|     |- domain/domain.error.js
+|     |- adapters/articles.repository.js
+|     |- application/load-articles.usecase.js
+|     |- ui/articles.controller.js
+|- app/
+|  |- shared/
+|  |  |- domain/domain-error.php
+|  |- article-detail/
+|     |- domain/article-detail.domain.php
+|     |- adapters/article-http.repository.php
+|     |- application/load-article-detail.usecase.php
 |- css/
 |  |- flexboxgrid.css
 |  |- main.css
+|- tests/
+|  |- run-tests.sh
+|  |- php/
+|  |  |- domain-error.test.php
+|  |  |- article-detail.domain.test.php
+|  |  |- load-article-detail.usecase.test.php
+|  |- js/
+|     |- domain.error.test.mjs
+|     |- articles.domain.test.mjs
+|     |- articles.integration.test.mjs
+|     |- articles.controller.integration.test.mjs
 |- images/
 |- videos/
+|- .env.example
 |- vercel.json
 ```
 
@@ -80,6 +106,12 @@ Acesse: `http://localhost:8000`
 
 ```bash
 ./build-static.sh
+```
+
+3) Testes locais (Fase 3)
+
+```bash
+tests/run-tests.sh
 ```
 
 Esse comando regenera:
@@ -139,6 +171,57 @@ Variáveis de ambiente:
 - `MICROSOFT_CLIENT_ID`: Client ID da aplicação Microsoft (Azure App Registration)
 - `ARTICLES_FETCH_TIMEOUT`: timeout (segundos) na busca de artigos durante o build
 - `ARTICLES_FETCH_RETRIES`: tentativas de retry na busca de artigos durante o build
+
+### Refatoração Clean (Fase 1) - Módulo de Artigos
+
+A listagem de artigos da home foi refatorada para um modelo de camadas (Clean/Hexagonal incremental), sem alterar comportamento funcional.
+
+Camadas aplicadas:
+- `domain`: regras puras e transformação de dados do artigo.
+- `adapters/repository`: acesso HTTP e localStorage.
+- `application/usecase`: orquestração de carga e sincronização de métricas.
+- `ui/controller`: renderização, eventos e estado de interação.
+- `app.js`: composition root (injeção de dependências e bootstrap).
+
+Objetivo prático:
+- reduzir acoplamento de regra dentro de `articles.php`;
+- facilitar manutenção e evolução;
+- preparar base para testes e próximas fases de refatoração.
+
+### Refatoração Clean (Fase 2) - Página de Artigo (`artigo.php`)
+
+A página de detalhe foi evoluída para controller fino em PHP, com separação de camadas para busca e composição do artigo.
+
+Camadas aplicadas:
+- `domain`: normalização, sanitização e regras puras de exibição.
+- `adapters/repository`: acesso HTTP JSON ao backend de artigos.
+- `application/usecase`: orquestra busca por `id`/`slug` e monta view model.
+- `artigo.php`: recebe requisição e renderiza o resultado do use case.
+
+Resultado:
+- regra de negócio fora da view principal;
+- menor acoplamento com infraestrutura;
+- caminho claro para testes unitários no detalhe do artigo.
+
+### Refatoração Clean (Fase 3) - Testes Iniciais
+
+Foi adicionada uma suíte de testes sem dependências externas para validar domínio e caso de uso.
+
+Cobertura inicial:
+- `tests/php/domain-error.test.php`
+- `tests/php/article-detail.domain.test.php`
+- `tests/php/load-article-detail.usecase.test.php`
+- `tests/js/domain.error.test.mjs`
+- `tests/js/articles.domain.test.mjs`
+- `tests/js/articles.integration.test.mjs`
+- `tests/js/articles.controller.integration.test.mjs`
+
+Runner único:
+- `tests/run-tests.sh`
+
+Padronização de erros de domínio:
+- JS: `scripts/articles/domain/domain.error.js` (`DomainError` com `code` e `details`).
+- PHP: `app/shared/domain/domain-error.php` (`DomainError` com `codeName`, `status` e `payload`).
 
 Fluxo prático de publicação:
 1. Publicar/atualizar artigo no backend/CMS.
@@ -247,11 +330,37 @@ In practice, this website is the public presentation layer while the article man
 |- footer.php
 |- scripts/
 |  |- generate-static-articles.mjs
+|  |- articles/
+|     |- app.js
+|     |- domain/article.domain.js
+|     |- domain/domain.error.js
+|     |- adapters/articles.repository.js
+|     |- application/load-articles.usecase.js
+|     |- ui/articles.controller.js
+|- app/
+|  |- shared/
+|  |  |- domain/domain-error.php
+|  |- article-detail/
+|     |- domain/article-detail.domain.php
+|     |- adapters/article-http.repository.php
+|     |- application/load-article-detail.usecase.php
 |- css/
 |  |- flexboxgrid.css
 |  |- main.css
+|- tests/
+|  |- run-tests.sh
+|  |- php/
+|  |  |- domain-error.test.php
+|  |  |- article-detail.domain.test.php
+|  |  |- load-article-detail.usecase.test.php
+|  |- js/
+|     |- domain.error.test.mjs
+|     |- articles.domain.test.mjs
+|     |- articles.integration.test.mjs
+|     |- articles.controller.integration.test.mjs
 |- images/
 |- videos/
+|- .env.example
 |- vercel.json
 ```
 
@@ -269,6 +378,12 @@ Open: `http://localhost:8000`
 
 ```bash
 ./build-static.sh
+```
+
+3) Local tests (Phase 3)
+
+```bash
+tests/run-tests.sh
 ```
 
 This regenerates:
@@ -328,6 +443,47 @@ Environment variables:
 - `MICROSOFT_CLIENT_ID`: Microsoft application client ID (Azure App Registration)
 - `ARTICLES_FETCH_TIMEOUT`: article fetch timeout during build (seconds)
 - `ARTICLES_FETCH_RETRIES`: article fetch retries during build
+
+### Clean Refactor (Phase 1) - Articles Module
+
+The home article listing was refactored to a layered model (incremental Clean/Hexagonal), with no functional behavior change.
+
+Applied layers:
+- `domain`: pure business/data transformation rules.
+- `adapters/repository`: HTTP and localStorage access.
+- `application/usecase`: loading flow and metrics synchronization orchestration.
+- `ui/controller`: rendering, UI events and interaction state.
+- `app.js`: composition root (dependency wiring and bootstrap).
+
+### Clean Refactor (Phase 2) - Article Detail (`artigo.php`)
+
+The article detail page now follows a thin-controller PHP approach, with separated layers for data loading and view-model composition.
+
+Applied layers:
+- `domain`: normalization, sanitization and pure display rules.
+- `adapters/repository`: HTTP JSON access to the articles backend.
+- `application/usecase`: orchestrates `id`/`slug` lookup and builds the view model.
+- `artigo.php`: handles request/response rendering only.
+
+### Clean Refactor (Phase 3) - Initial Tests
+
+An initial no-dependency test suite was added to validate domain and use-case behavior.
+
+Initial coverage:
+- `tests/php/domain-error.test.php`
+- `tests/php/article-detail.domain.test.php`
+- `tests/php/load-article-detail.usecase.test.php`
+- `tests/js/domain.error.test.mjs`
+- `tests/js/articles.domain.test.mjs`
+- `tests/js/articles.integration.test.mjs`
+- `tests/js/articles.controller.integration.test.mjs`
+
+Single runner:
+- `tests/run-tests.sh`
+
+Domain error standardization:
+- JS: `scripts/articles/domain/domain.error.js` (`DomainError` with `code` and `details`).
+- PHP: `app/shared/domain/domain-error.php` (`DomainError` with `codeName`, `status`, and `payload`).
 
 Practical publishing flow:
 1. Publish/update article in backend/CMS.

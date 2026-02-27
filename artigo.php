@@ -1,123 +1,12 @@
 <?php
-function esc($value) {
+declare(strict_types=1);
+
+function esc($value): string {
   return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
 }
 
-function is_assoc_array($value) {
-  return is_array($value) && array_keys($value) !== range(0, count($value) - 1);
-}
-
-function fetch_json($url) {
-  if (!filter_var($url, FILTER_VALIDATE_URL)) return null;
-
-  if (function_exists('curl_init')) {
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_FOLLOWLOCATION => true,
-      CURLOPT_TIMEOUT => 8,
-      CURLOPT_CONNECTTIMEOUT => 4,
-      CURLOPT_HTTPHEADER => ['Accept: application/json'],
-      CURLOPT_USERAGENT => 'site-advogada-article-ssr/1.0',
-    ]);
-    $response = curl_exec($ch);
-    $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($response === false || $status < 200 || $status >= 300) {
-      return null;
-    }
-  } else {
-    $context = stream_context_create([
-      'http' => [
-        'method' => 'GET',
-        'timeout' => 8,
-        'header' => "Accept: application/json\r\nUser-Agent: site-advogada-article-ssr/1.0\r\n",
-      ],
-    ]);
-    $response = @file_get_contents($url, false, $context);
-    if ($response === false) {
-      return null;
-    }
-  }
-
-  $decoded = json_decode($response, true);
-  return is_array($decoded) ? $decoded : null;
-}
-
-function normalize_article($payload) {
-  if (!is_array($payload) || !$payload) return null;
-
-  if (is_assoc_array($payload) && isset($payload['title'])) {
-    return $payload;
-  }
-
-  if (isset($payload['data']) && is_array($payload['data'])) {
-    if (is_assoc_array($payload['data']) && isset($payload['data']['title'])) {
-      return $payload['data'];
-    }
-    if (isset($payload['data'][0]) && is_array($payload['data'][0])) {
-      return $payload['data'][0];
-    }
-  }
-
-  if (isset($payload[0]) && is_array($payload[0])) {
-    return $payload[0];
-  }
-
-  return null;
-}
-
-function resolve_media_url($value, $apiBase, $uploadsBase) {
-  $raw = trim((string)$value);
-  if ($raw === '') return '';
-
-  if (preg_match('#^https?://#i', $raw)) return $raw;
-  if (strpos($raw, '/uploads/') === 0) return $apiBase . $raw;
-  if (strpos($raw, 'uploads/') === 0) return $apiBase . '/' . $raw;
-  return $uploadsBase . '/' . rawurlencode($raw);
-}
-
-function excerpt_from_content($content, $max = 160) {
-  $plain = trim(preg_replace('/\s+/', ' ', strip_tags((string)$content)));
-  if ($plain === '') return 'Artigo jurídico da Maria Silva Advocacia.';
-  if (mb_strlen($plain, 'UTF-8') <= $max) return $plain;
-  return rtrim(mb_substr($plain, 0, $max, 'UTF-8')) . '...';
-}
-
-function format_article_date($value) {
-  if (!$value) return '';
-  try {
-    $date = new DateTime((string)$value);
-  } catch (Exception $e) {
-    return '';
-  }
-  return $date->format('d/m/Y');
-}
-
-function estimate_read_time($content) {
-  $plain = trim(preg_replace('/\s+/', ' ', strip_tags((string)$content)));
-  if ($plain === '') return '1 min de leitura';
-  $wordCount = count(preg_split('/\s+/', $plain));
-  $minutes = max(1, (int)round($wordCount / 220));
-  return $minutes . ' min de leitura';
-}
-
-function sanitize_article_html($content) {
-  $html = trim((string)$content);
-  if ($html === '') return '';
-
-  $html = preg_replace('#<(script|style)\b[^>]*>.*?</\1>#is', '', $html);
-  $allowed = ['p', 'br', 'strong', 'em', 'b', 'i', 'u', 'ul', 'ol', 'li', 'blockquote', 'h2', 'h3'];
-  $allowedTags = '<' . implode('><', $allowed) . '>';
-  $html = strip_tags($html, $allowedTags);
-  $html = preg_replace_callback('/<(\/?)([a-z0-9]+)(?:\s[^>]*)?>/i', function($m) use ($allowed) {
-    $tag = strtolower($m[2]);
-    if (!in_array($tag, $allowed, true)) return '';
-    return '<' . $m[1] . $tag . '>';
-  }, $html);
-  return trim((string)$html);
-}
+require_once __DIR__ . '/app/article-detail/application/load-article-detail.usecase.php';
+require_once __DIR__ . '/app/shared/domain/domain-error.php';
 
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
@@ -128,72 +17,49 @@ $isLocal = preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $host) === 1;
 $apiBase = getenv('ARTICLES_API_BASE') ?: ($isLocal ? 'http://localhost:4010' : 'https://blog-back-n6z4.onrender.com');
 $uploadsBase = $apiBase . '/uploads';
 
-$articleId = trim((string)($_GET['id'] ?? ''));
-$articleSlug = trim((string)($_GET['slug'] ?? ''));
+$articleDetail = [
+  'article' => null,
+  'fallbackTitle' => 'Artigo',
+  'metaTitle' => 'Artigo',
+  'metaDescription' => 'Artigo juridico da Maria Silva Advocacia.',
+  'canonicalUrl' => $basePageUrl,
+  'coverUrl' => '',
+  'ogImage' => '',
+  'publishedDate' => '',
+  'readTime' => '1 min de leitura',
+  'views' => 0,
+  'likes' => 0,
+  'pageTitle' => 'Artigo | Maria Silva Advocacia',
+  'contentHtml' => '<p>Sem conteudo disponivel.</p>',
+];
 
-$article = null;
-
-if ($articleId !== '') {
-  $payload = fetch_json($apiBase . '/articles/' . rawurlencode($articleId));
-  $article = normalize_article($payload);
+try {
+  $articleDetail = load_article_detail_usecase([
+    'apiBase' => $apiBase,
+    'uploadsBase' => $uploadsBase,
+    'articleId' => trim((string)($_GET['id'] ?? '')),
+    'articleSlug' => trim((string)($_GET['slug'] ?? '')),
+    'basePageUrl' => $basePageUrl,
+  ], 'esc');
+} catch (DomainError $e) {
+  error_log('DomainError em artigo.php: ' . $e->getCodeName() . ' - ' . $e->getMessage());
+} catch (Throwable $e) {
+  error_log('Erro inesperado em artigo.php: ' . $e->getMessage());
 }
 
-if (!$article && $articleSlug !== '') {
-  $slugAttempts = [
-    $apiBase . '/articles/slug/' . rawurlencode($articleSlug),
-    $apiBase . '/articles/by-slug/' . rawurlencode($articleSlug),
-    $apiBase . '/articles?status=published&slug=' . rawurlencode($articleSlug) . '&limit=1',
-  ];
-
-  foreach ($slugAttempts as $url) {
-    $payload = fetch_json($url);
-    $article = normalize_article($payload);
-    if ($article) break;
-  }
-}
-
-$seo = is_array($article['seo'] ?? null) ? $article['seo'] : [];
-
-$fallbackTitle = $article['title'] ?? 'Artigo';
-$metaTitle = trim((string)($seo['metaTitle'] ?? '')) ?: trim((string)$fallbackTitle);
-$metaDescription = trim((string)($seo['metaDescription'] ?? '')) ?: excerpt_from_content($article['content'] ?? '');
-
-$canonicalUrl = trim((string)($seo['canonicalUrl'] ?? ''));
-if ($canonicalUrl === '') {
-  $slug = trim((string)($article['slug'] ?? $articleSlug));
-  if ($slug !== '') {
-    $canonicalUrl = $basePageUrl . '?slug=' . rawurlencode($slug);
-  } elseif ($articleId !== '') {
-    $canonicalUrl = $basePageUrl . '?id=' . rawurlencode($articleId);
-  } else {
-    $canonicalUrl = $basePageUrl;
-  }
-}
-
-$coverUrl = resolve_media_url($article['coverImage'] ?? '', $apiBase, $uploadsBase);
-$ogImage = resolve_media_url($seo['ogImage'] ?? '', $apiBase, $uploadsBase);
-if ($ogImage === '') $ogImage = $coverUrl;
-
-$publishedDate = format_article_date($article['publishedAt'] ?? $article['createdAt'] ?? $article['updatedAt'] ?? '');
-$readTime = estimate_read_time($article['content'] ?? '');
-$views = (int)($article['views'] ?? $article['viewCount'] ?? 0);
-$likes = (int)($article['likes'] ?? $article['likesCount'] ?? 0);
-
-$pageTitle = ($metaTitle !== '' ? $metaTitle : 'Artigo') . ' | Maria Silva Advocacia';
-$contentHtml = '';
-if ($article && isset($article['content'])) {
-  $rawContent = trim((string)$article['content']);
-  if (preg_match('/<[^>]+>/', $rawContent)) {
-    $contentHtml = sanitize_article_html($rawContent);
-  } else {
-    $parts = preg_split('/\n\s*\n/', $rawContent) ?: [];
-    foreach ($parts as $p) {
-      $line = nl2br(esc(trim($p)));
-      if ($line !== '') $contentHtml .= '<p>' . $line . '</p>';
-    }
-  }
-  if ($contentHtml === '') $contentHtml = '<p>Sem conteúdo disponível.</p>';
-}
+$article = $articleDetail['article'];
+$fallbackTitle = $articleDetail['fallbackTitle'];
+$metaTitle = $articleDetail['metaTitle'];
+$metaDescription = $articleDetail['metaDescription'];
+$canonicalUrl = $articleDetail['canonicalUrl'];
+$coverUrl = $articleDetail['coverUrl'];
+$ogImage = $articleDetail['ogImage'];
+$publishedDate = $articleDetail['publishedDate'];
+$readTime = $articleDetail['readTime'];
+$views = $articleDetail['views'];
+$likes = $articleDetail['likes'];
+$pageTitle = $articleDetail['pageTitle'];
+$contentHtml = $articleDetail['contentHtml'];
 ?>
 <!doctype html>
 <html lang="pt-BR">
