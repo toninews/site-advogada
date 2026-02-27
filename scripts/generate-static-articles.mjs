@@ -57,9 +57,29 @@ function readTime(content = "") {
   return `${Math.max(1, Math.round(words / 220))} min de leitura`;
 }
 
+function stripHtml(content = "") {
+  return String(content).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function sanitizeArticleHtml(content = "") {
+  const raw = String(content || "").trim();
+  if (!raw) return "";
+  const cleaned = raw.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, "");
+  const allowed = new Set(["p", "br", "strong", "em", "b", "i", "u", "ul", "ol", "li", "blockquote", "h2", "h3"]);
+  return cleaned.replace(/<(\/?)([a-z0-9]+)(?:\s[^>]*)?>/gi, (_, slash, tag) => {
+    const name = String(tag || "").toLowerCase();
+    if (!allowed.has(name)) return "";
+    return `<${slash ? "/" : ""}${name}>`;
+  }).trim();
+}
+
 function renderContentHtml(content = "") {
   const trimmed = String(content).trim();
   if (!trimmed) return "<p>Sem conteúdo disponível.</p>";
+  if (/<[^>]+>/.test(trimmed)) {
+    const sanitized = sanitizeArticleHtml(trimmed);
+    return sanitized || "<p>Sem conteúdo disponível.</p>";
+  }
   const parts = trimmed.split(/\n\s*\n/);
   const html = parts
     .map((part) => esc(part.trim()).replaceAll("\n", "<br>"))
@@ -72,7 +92,7 @@ function renderContentHtml(content = "") {
 function buildCardSummary(item) {
   if (!item || typeof item !== "object") return null;
   const content = String(item.content || "");
-  const plain = content.replace(/\s+/g, " ").trim();
+  const plain = stripHtml(content);
   const wordCount = plain ? plain.split(" ").filter(Boolean).length : 0;
   const excerptText = plain.length > 280 ? `${plain.slice(0, 280).trimEnd()}...` : plain;
   return {

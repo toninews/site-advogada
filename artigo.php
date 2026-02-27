@@ -103,6 +103,22 @@ function estimate_read_time($content) {
   return $minutes . ' min de leitura';
 }
 
+function sanitize_article_html($content) {
+  $html = trim((string)$content);
+  if ($html === '') return '';
+
+  $html = preg_replace('#<(script|style)\b[^>]*>.*?</\1>#is', '', $html);
+  $allowed = ['p', 'br', 'strong', 'em', 'b', 'i', 'u', 'ul', 'ol', 'li', 'blockquote', 'h2', 'h3'];
+  $allowedTags = '<' . implode('><', $allowed) . '>';
+  $html = strip_tags($html, $allowedTags);
+  $html = preg_replace_callback('/<(\/?)([a-z0-9]+)(?:\s[^>]*)?>/i', function($m) use ($allowed) {
+    $tag = strtolower($m[2]);
+    if (!in_array($tag, $allowed, true)) return '';
+    return '<' . $m[1] . $tag . '>';
+  }, $html);
+  return trim((string)$html);
+}
+
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $currentPath = strtok($_SERVER['REQUEST_URI'] ?? '/artigo.php', '?');
@@ -166,10 +182,15 @@ $likes = (int)($article['likes'] ?? $article['likesCount'] ?? 0);
 $pageTitle = ($metaTitle !== '' ? $metaTitle : 'Artigo') . ' | Maria Silva Advocacia';
 $contentHtml = '';
 if ($article && isset($article['content'])) {
-  $parts = preg_split('/\n\s*\n/', trim((string)$article['content'])) ?: [];
-  foreach ($parts as $p) {
-    $line = nl2br(esc(trim($p)));
-    if ($line !== '') $contentHtml .= '<p>' . $line . '</p>';
+  $rawContent = trim((string)$article['content']);
+  if (preg_match('/<[^>]+>/', $rawContent)) {
+    $contentHtml = sanitize_article_html($rawContent);
+  } else {
+    $parts = preg_split('/\n\s*\n/', $rawContent) ?: [];
+    foreach ($parts as $p) {
+      $line = nl2br(esc(trim($p)));
+      if ($line !== '') $contentHtml .= '<p>' . $line . '</p>';
+    }
   }
   if ($contentHtml === '') $contentHtml = '<p>Sem conteúdo disponível.</p>';
 }
