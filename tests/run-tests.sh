@@ -26,5 +26,7 @@ node tests/js/history.domain.test.mjs
 node tests/js/history.usecase.test.mjs
 node tests/js/header.domain.test.mjs
 node tests/js/header.usecase.test.mjs
+node tests/js/carousel.domain.test.mjs
+node tests/js/carousel.usecase.test.mjs
 
 echo "All tests passed."

@@ -98,6 +98,11 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- domain/header.domain.js
 |     |- application/init-header-menu.usecase.js
 |     |- ui/header.controller.js
+|  |- carousel/
+|     |- app.js
+|     |- domain/carousel.domain.js
+|     |- application/init-carousel.usecase.js
+|     |- ui/carousel.controller.js
 |- app/
 |  |- shared/
 |  |  |- domain/domain-error.php
@@ -132,6 +137,8 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- history.usecase.test.mjs
 |     |- header.domain.test.mjs
 |     |- header.usecase.test.mjs
+|     |- carousel.domain.test.mjs
+|     |- carousel.usecase.test.mjs
 |- images/
 |- videos/
 |- .env.example
@@ -318,6 +325,14 @@ O comportamento do menu de navegação foi centralizado em um módulo reutilizá
 - `ui/controller`: toggle, fechamento em eventos globais e ajuste de scroll em `#articles`.
 - `app.js`: bootstrap compartilhado para home e página de detalhe.
 
+### Refatoração Clean (Fase 4.6) - Módulo Carousel
+
+A lógica do carrossel também foi extraída para camadas leves:
+- `domain`: normalização de índice, tempos de autoplay/warmup e transformação do indicador.
+- `application/usecase`: plano de inicialização do carrossel.
+- `ui/controller`: navegação (`prev/next/dots`), autoplay, pausa por hover/aba e warmup de imagens.
+- `app.js`: bootstrap da feature.
+
 Fluxo prático de publicação:
 1. Publicar/atualizar artigo no backend/CMS.
 2. Disparar novo build/deploy na Vercel (push/commit ou deploy hook).
@@ -482,6 +497,11 @@ In practice, this website is the public presentation layer while the article man
 |     |- domain/header.domain.js
 |     |- application/init-header-menu.usecase.js
 |     |- ui/header.controller.js
+|  |- carousel/
+|     |- app.js
+|     |- domain/carousel.domain.js
+|     |- application/init-carousel.usecase.js
+|     |- ui/carousel.controller.js
 |- app/
 |  |- shared/
 |  |  |- domain/domain-error.php
@@ -516,6 +536,8 @@ In practice, this website is the public presentation layer while the article man
 |     |- history.usecase.test.mjs
 |     |- header.domain.test.mjs
 |     |- header.usecase.test.mjs
+|     |- carousel.domain.test.mjs
+|     |- carousel.usecase.test.mjs
 |- images/
 |- videos/
 |- .env.example
@@ -691,6 +713,14 @@ The navigation menu behavior was centralized in a reusable module:
 - `application/usecase`: header initialization plan.
 - `ui/controller`: toggle, global close handlers, and `#articles` scroll adjustment.
 - `app.js`: shared bootstrap for home and article detail pages.
+
+### Clean Refactor (Phase 4.6) - Carousel Module
+
+The carousel logic was also extracted into lightweight layers:
+- `domain`: index normalization, autoplay/warmup timings, and indicator transform.
+- `application/usecase`: carousel initialization plan.
+- `ui/controller`: navigation (`prev/next/dots`), autoplay, hover/visibility pause, and image warmup.
+- `app.js`: feature bootstrap.
 
 Practical publishing flow:
 1. Publish/update article in backend/CMS.
