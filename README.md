@@ -76,6 +76,7 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |  |- flexboxgrid.css
 |  |- main.css
 |- tests/
+|  |- check-syntax.sh
 |  |- run-tests.sh
 |  |- php/
 |  |  |- domain-error.test.php
@@ -257,10 +258,11 @@ Base implementada:
 
 1. Editar seções (`*.php`) e estilos (`css/main.css`).
 2. Validar localmente em modo PHP.
-3. Executar testes locais com `tests/run-tests.sh`.
-4. Regenerar estático com `./build-static.sh`.
-5. Revisar `git diff`.
-6. Commit e deploy.
+3. Executar checks de sintaxe com `tests/check-syntax.sh`.
+4. Executar testes locais com `tests/run-tests.sh`.
+5. Regenerar estático com `./build-static.sh`.
+6. Revisar `git diff`.
+7. Commit e deploy.
 
 ### CI (GitHub Actions)
 
@@ -272,7 +274,9 @@ Acionamento:
 - pull request
 
 Execução:
-- roda `./tests/run-tests.sh` em ambiente Ubuntu com PHP 8.2 e Node 20.
+- roda `./tests/check-syntax.sh` (PHP + JS syntax checks)
+- roda `./tests/run-tests.sh` (unit + integration tests)
+- ambiente Ubuntu com PHP 8.2 e Node 20
 
 ### Observações
 
@@ -361,6 +365,7 @@ In practice, this website is the public presentation layer while the article man
 |  |- flexboxgrid.css
 |  |- main.css
 |- tests/
+|  |- check-syntax.sh
 |  |- run-tests.sh
 |  |- php/
 |  |  |- domain-error.test.php
@@ -532,10 +537,11 @@ Implemented baseline:
 
 1. Edit section files (`*.php`) and styles (`css/main.css`).
 2. Validate locally in PHP mode.
-3. Run local tests with `tests/run-tests.sh`.
-4. Regenerate static output with `./build-static.sh`.
-5. Review `git diff`.
-6. Commit and deploy.
+3. Run syntax checks with `tests/check-syntax.sh`.
+4. Run local tests with `tests/run-tests.sh`.
+5. Regenerate static output with `./build-static.sh`.
+6. Review `git diff`.
+7. Commit and deploy.
 
 ### CI (GitHub Actions)
 
@@ -547,7 +553,9 @@ Triggers:
 - pull request
 
 Execution:
-- runs `./tests/run-tests.sh` on Ubuntu with PHP 8.2 and Node 20.
+- runs `./tests/check-syntax.sh` (PHP + JS syntax checks)
+- runs `./tests/run-tests.sh` (unit + integration tests)
+- Ubuntu environment with PHP 8.2 and Node 20
 
 ### Notes
 
