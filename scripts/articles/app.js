@@ -19,7 +19,9 @@
     apiUrl: `${apiBase}/articles?status=published&limit=6`,
     staticIndexUrl: 'artigos/index.json',
     uploadsBase: `${apiBase}/uploads`,
-    isPhpRuntime: window.__SITE_RUNTIME__ === 'php',
+    isPhpRuntime:
+      (document.documentElement && document.documentElement.getAttribute('data-site-runtime') === 'php') ||
+      window.__SITE_RUNTIME__ === 'php',
     likedStorageKey: 'site-advogada-liked-articles-v1',
     fingerprintStorageKey: 'site-advogada-fingerprint-v1',
     metricsStorageKey: 'site-advogada-article-metrics-v1'

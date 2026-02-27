@@ -16,7 +16,7 @@ fi
 
 cat > index.html <<'HTML_HEAD'
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-site-runtime="static">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -50,7 +50,6 @@ cat > index.html <<'HTML_HEAD'
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/flexboxgrid.css">
   <link rel="stylesheet" href="css/main.css?v=20260223a">
-  <script>window.__SITE_RUNTIME__ = "static";</script>
 </head>
 <body>
 HTML_HEAD
