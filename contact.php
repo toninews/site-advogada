@@ -84,66 +84,8 @@
   ></iframe>
 </section>
 
-<script>
-(() => {
-  const form = document.getElementById('contact-form');
-  const feedback = document.getElementById('contact-feedback');
-  const phoneInput = form ? form.querySelector('input[name="phone"]') : null;
-  if (!form || !feedback) return;
-
-  const requiredFields = ['name', 'phone', 'email', 'area', 'message'];
-
-  function setFeedback(message, isError = false) {
-    feedback.textContent = message;
-    feedback.classList.toggle('is-error', isError);
-  }
-
-  function normalizePhone(value) {
-    return String(value || '').replace(/\D/g, '');
-  }
-
-  function formatPhone(value) {
-    const digits = normalizePhone(value).slice(0, 11);
-    if (digits.length <= 2) return digits;
-    if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-  }
-
-  if (phoneInput) {
-    phoneInput.addEventListener('input', () => {
-      phoneInput.value = formatPhone(phoneInput.value);
-    });
-    phoneInput.addEventListener('blur', () => {
-      phoneInput.value = formatPhone(phoneInput.value);
-    });
-  }
-
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-
-    const data = new FormData(form);
-    const values = Object.fromEntries(data.entries());
-
-    for (const field of requiredFields) {
-      if (!String(values[field] || '').trim()) {
-        setFeedback('Preencha todos os campos obrigatórios.', true);
-        return;
-      }
-    }
-
-    const phoneDigits = normalizePhone(values.phone);
-    if (phoneDigits.length < 11) {
-      setFeedback('Informe um Celular / WhatsApp válido com DDD.', true);
-      return;
-    }
-
-    setFeedback('Enviando...');
-
-    setTimeout(() => {
-      setFeedback('Mensagem simulada com sucesso. Este site é um modelo demonstrativo e não realiza envio real.');
-      form.reset();
-    }, 700);
-  });
-})();
-</script>
+<script src="scripts/contact/domain/contact.domain.js" defer></script>
+<script src="scripts/contact/adapters/contact.repository.js" defer></script>
+<script src="scripts/contact/application/submit-contact.usecase.js" defer></script>
+<script src="scripts/contact/ui/contact.controller.js" defer></script>
+<script src="scripts/contact/app.js" defer></script>

@@ -54,6 +54,8 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |- areas.php
 |- services.php
 |- articles.php
+|- article-detail.php
+|- artigo.php (legacy redirect)
 |- contact.php
 |- footer.php
 |- scripts/
@@ -65,6 +67,12 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- adapters/articles.repository.js
 |     |- application/load-articles.usecase.js
 |     |- ui/articles.controller.js
+|  |- contact/
+|     |- app.js
+|     |- domain/contact.domain.js
+|     |- adapters/contact.repository.js
+|     |- application/submit-contact.usecase.js
+|     |- ui/contact.controller.js
 |- app/
 |  |- shared/
 |  |  |- domain/domain-error.php
@@ -87,6 +95,8 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- articles.domain.test.mjs
 |     |- articles.integration.test.mjs
 |     |- articles.controller.integration.test.mjs
+|     |- contact.domain.test.mjs
+|     |- contact.usecase.integration.test.mjs
 |- images/
 |- videos/
 |- .env.example
@@ -189,7 +199,7 @@ Objetivo prático:
 - facilitar manutenção e evolução;
 - preparar base para testes e próximas fases de refatoração.
 
-### Refatoração Clean (Fase 2) - Página de Artigo (`artigo.php`)
+### Refatoração Clean (Fase 2) - Página de Artigo (`article-detail.php`)
 
 A página de detalhe foi evoluída para controller fino em PHP, com separação de camadas para busca e composição do artigo.
 
@@ -197,7 +207,7 @@ Camadas aplicadas:
 - `domain`: normalização, sanitização e regras puras de exibição.
 - `adapters/repository`: acesso HTTP JSON ao backend de artigos.
 - `application/usecase`: orquestra busca por `id`/`slug` e monta view model.
-- `artigo.php`: recebe requisição e renderiza o resultado do use case.
+- `article-detail.php`: recebe requisição e renderiza o resultado do use case.
 
 Resultado:
 - regra de negócio fora da view principal;
@@ -223,6 +233,15 @@ Runner único:
 Padronização de erros de domínio:
 - JS: `scripts/articles/domain/domain.error.js` (`DomainError` com `code` e `details`).
 - PHP: `app/shared/domain/domain-error.php` (`DomainError` com `codeName`, `status` e `payload`).
+
+### Refatoração Clean (Fase 4) - Módulo de Contato
+
+O fluxo do formulário de contato foi extraído para camadas leves:
+- `domain`: máscara/normalização/validação do payload.
+- `adapters/repository`: envio simulado assíncrono.
+- `application/usecase`: regras de submissão e retorno de resultado.
+- `ui/controller`: eventos de input/submit e feedback ao usuário.
+- `app.js`: bootstrap com injeção de dependências.
 
 Fluxo prático de publicação:
 1. Publicar/atualizar artigo no backend/CMS.
@@ -281,6 +300,7 @@ Execução:
 ### Observações
 
 - Parte dos conteúdos e contatos no repositório é de exemplo/template.
+- Algumas imagens deste site foram geradas com apoio de IA.
 - O projeto é um bom ponto de partida para sites institucionais pequenos/médios.
 
 ### Autor
@@ -343,6 +363,8 @@ In practice, this website is the public presentation layer while the article man
 |- areas.php
 |- services.php
 |- articles.php
+|- article-detail.php
+|- artigo.php (legacy redirect)
 |- contact.php
 |- footer.php
 |- scripts/
@@ -354,6 +376,12 @@ In practice, this website is the public presentation layer while the article man
 |     |- adapters/articles.repository.js
 |     |- application/load-articles.usecase.js
 |     |- ui/articles.controller.js
+|  |- contact/
+|     |- app.js
+|     |- domain/contact.domain.js
+|     |- adapters/contact.repository.js
+|     |- application/submit-contact.usecase.js
+|     |- ui/contact.controller.js
 |- app/
 |  |- shared/
 |  |  |- domain/domain-error.php
@@ -376,6 +404,8 @@ In practice, this website is the public presentation layer while the article man
 |     |- articles.domain.test.mjs
 |     |- articles.integration.test.mjs
 |     |- articles.controller.integration.test.mjs
+|     |- contact.domain.test.mjs
+|     |- contact.usecase.integration.test.mjs
 |- images/
 |- videos/
 |- .env.example
@@ -473,7 +503,7 @@ Applied layers:
 - `ui/controller`: rendering, UI events and interaction state.
 - `app.js`: composition root (dependency wiring and bootstrap).
 
-### Clean Refactor (Phase 2) - Article Detail (`artigo.php`)
+### Clean Refactor (Phase 2) - Article Detail (`article-detail.php`)
 
 The article detail page now follows a thin-controller PHP approach, with separated layers for data loading and view-model composition.
 
@@ -481,7 +511,7 @@ Applied layers:
 - `domain`: normalization, sanitization and pure display rules.
 - `adapters/repository`: HTTP JSON access to the articles backend.
 - `application/usecase`: orchestrates `id`/`slug` lookup and builds the view model.
-- `artigo.php`: handles request/response rendering only.
+- `article-detail.php`: handles request/response rendering only.
 
 ### Clean Refactor (Phase 3) - Initial Tests
 
@@ -502,6 +532,15 @@ Single runner:
 Domain error standardization:
 - JS: `scripts/articles/domain/domain.error.js` (`DomainError` with `code` and `details`).
 - PHP: `app/shared/domain/domain-error.php` (`DomainError` with `codeName`, `status`, and `payload`).
+
+### Clean Refactor (Phase 4) - Contact Module
+
+The contact form flow was extracted into lightweight layers:
+- `domain`: phone mask/normalization/payload validation.
+- `adapters/repository`: async simulated submission.
+- `application/usecase`: submission rules and result mapping.
+- `ui/controller`: input/submit events and user feedback.
+- `app.js`: dependency wiring and bootstrap.
 
 Practical publishing flow:
 1. Publish/update article in backend/CMS.
@@ -560,6 +599,7 @@ Execution:
 ### Notes
 
 - Some content and contact data in this repository are placeholders/template values.
+- Some images on this website were generated with AI assistance.
 - This repository is a solid starter for small/medium institutional websites.
 
 ### Author

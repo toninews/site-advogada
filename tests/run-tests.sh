@@ -14,5 +14,7 @@ node tests/js/domain.error.test.mjs
 node tests/js/articles.domain.test.mjs
 node tests/js/articles.integration.test.mjs
 node tests/js/articles.controller.integration.test.mjs
+node tests/js/contact.domain.test.mjs
+node tests/js/contact.usecase.integration.test.mjs
 
 echo "All tests passed."
