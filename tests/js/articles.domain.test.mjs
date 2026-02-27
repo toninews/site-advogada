@@ -39,7 +39,7 @@ const model = domain.toCardModel({
   readCachedMetrics: () => null
 });
 
-assertTrue(model.articleUrl.includes('artigo.php?id=id1&slug=meu-slug'), 'toCardModel should build php article URL');
+assertTrue(model.articleUrl.includes('article-detail.php?id=id1&slug=meu-slug'), 'toCardModel should build php article URL');
 assertTrue(model.views === 4, 'toCardModel should map metric values');
 
 console.log('PASS: articles.domain.test.mjs');

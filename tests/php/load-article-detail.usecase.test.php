@@ -46,7 +46,7 @@ $resultBySlug = load_article_detail_usecase([
   'apiBase' => 'https://api.test',
   'uploadsBase' => 'https://api.test/uploads',
   'articleSlug' => 'slug-teste',
-  'basePageUrl' => 'https://site.test/artigo.php',
+  'basePageUrl' => 'https://site.test/article-detail.php',
   'fetchJson' => $fetchJson,
 ], fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'));
 
@@ -58,7 +58,7 @@ assert_true(strpos((string)$resultBySlug['canonicalUrl'], 'slug=slug-teste') !==
 $resultById = load_article_detail_usecase([
   'apiBase' => 'https://api.test',
   'articleId' => 'abc123',
-  'basePageUrl' => 'https://site.test/artigo.php',
+  'basePageUrl' => 'https://site.test/article-detail.php',
   'fetchJson' => $fetchJson,
 ], fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'));
 
@@ -72,7 +72,7 @@ $threwDomainError = false;
 try {
   load_article_detail_usecase([
     'articleId' => 'abc123',
-    'basePageUrl' => 'https://site.test/artigo.php',
+    'basePageUrl' => 'https://site.test/article-detail.php',
     'fetchJson' => $fetchJson,
   ], fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'));
 } catch (DomainError $e) {

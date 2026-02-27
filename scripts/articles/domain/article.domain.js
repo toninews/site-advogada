@@ -169,7 +169,7 @@
     const staticSlug = slugifyPath(rawSlug || (rawId ? `id-${rawId}` : ''));
     const articleUrl = rawId
       ? (isPhpRuntime
-        ? `artigo.php?id=${encodeURIComponent(rawId)}${slugParam}`
+        ? `article-detail.php?id=${encodeURIComponent(rawId)}${slugParam}`
         : `artigos/${encodeURIComponent(staticSlug)}/`)
       : '#';
 
