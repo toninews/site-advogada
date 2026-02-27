@@ -93,6 +93,11 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- domain/history.domain.js
 |     |- application/init-history-reveal.usecase.js
 |     |- ui/history.controller.js
+|  |- header/
+|     |- app.js
+|     |- domain/header.domain.js
+|     |- application/init-header-menu.usecase.js
+|     |- ui/header.controller.js
 |- app/
 |  |- shared/
 |  |  |- domain/domain-error.php
@@ -125,6 +130,8 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- about.usecase.test.mjs
 |     |- history.domain.test.mjs
 |     |- history.usecase.test.mjs
+|     |- header.domain.test.mjs
+|     |- header.usecase.test.mjs
 |- images/
 |- videos/
 |- .env.example
@@ -303,6 +310,14 @@ O comportamento da seção de história foi extraído para camadas leves:
 - `ui/controller`: reveal do texto principal e toggle da foto em mobile.
 - `app.js`: bootstrap da feature.
 
+### Refatoração Clean (Fase 4.5) - Módulo Header
+
+O comportamento do menu de navegação foi centralizado em um módulo reutilizável:
+- `domain`: regras de estado do menu, media queries e ajuste de hash.
+- `application/usecase`: plano de inicialização do header.
+- `ui/controller`: toggle, fechamento em eventos globais e ajuste de scroll em `#articles`.
+- `app.js`: bootstrap compartilhado para home e página de detalhe.
+
 Fluxo prático de publicação:
 1. Publicar/atualizar artigo no backend/CMS.
 2. Disparar novo build/deploy na Vercel (push/commit ou deploy hook).
@@ -462,6 +477,11 @@ In practice, this website is the public presentation layer while the article man
 |     |- domain/history.domain.js
 |     |- application/init-history-reveal.usecase.js
 |     |- ui/history.controller.js
+|  |- header/
+|     |- app.js
+|     |- domain/header.domain.js
+|     |- application/init-header-menu.usecase.js
+|     |- ui/header.controller.js
 |- app/
 |  |- shared/
 |  |  |- domain/domain-error.php
@@ -494,6 +514,8 @@ In practice, this website is the public presentation layer while the article man
 |     |- about.usecase.test.mjs
 |     |- history.domain.test.mjs
 |     |- history.usecase.test.mjs
+|     |- header.domain.test.mjs
+|     |- header.usecase.test.mjs
 |- images/
 |- videos/
 |- .env.example
@@ -661,6 +683,14 @@ The history section behavior was extracted into lightweight layers:
 - `application/usecase`: initialization plan for reveal and interactions.
 - `ui/controller`: main text reveal and mobile image-card toggle.
 - `app.js`: feature bootstrap.
+
+### Clean Refactor (Phase 4.5) - Header Module
+
+The navigation menu behavior was centralized in a reusable module:
+- `domain`: menu state rules, media queries, and hash-adjust behavior.
+- `application/usecase`: header initialization plan.
+- `ui/controller`: toggle, global close handlers, and `#articles` scroll adjustment.
+- `app.js`: shared bootstrap for home and article detail pages.
 
 Practical publishing flow:
 1. Publish/update article in backend/CMS.

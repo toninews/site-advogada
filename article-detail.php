@@ -220,46 +220,9 @@ $contentHtml = $articleDetail['contentHtml'];
 
     <?php include 'footer.php'; ?>
 
-    <script>
-      (() => {
-        const menuToggle = document.querySelector('.menu-toggle');
-        const siteMenu = document.querySelector('.site-menu');
-        if (!menuToggle || !siteMenu) return;
-
-        const closeMenu = () => {
-          menuToggle.setAttribute('aria-expanded', 'false');
-          menuToggle.setAttribute('aria-label', 'Abrir menu');
-          siteMenu.classList.remove('is-open');
-        };
-
-        menuToggle.addEventListener('click', () => {
-          const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
-          menuToggle.setAttribute('aria-expanded', String(!isOpen));
-          menuToggle.setAttribute('aria-label', isOpen ? 'Abrir menu' : 'Fechar menu');
-          siteMenu.classList.toggle('is-open');
-        });
-
-        document.addEventListener('click', (event) => {
-          const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
-          if (!isOpen) return;
-          if (menuToggle.contains(event.target) || siteMenu.contains(event.target)) return;
-          closeMenu();
-        });
-
-        document.addEventListener('keydown', (event) => {
-          if (event.key === 'Escape') closeMenu();
-        });
-
-        siteMenu.querySelectorAll('a').forEach((link) => {
-          link.addEventListener('click', () => {
-            if (window.matchMedia('(max-width: 47.99em)').matches) closeMenu();
-          });
-        });
-
-        window.addEventListener('resize', () => {
-          if (window.matchMedia('(min-width: 48em)').matches) closeMenu();
-        });
-      })();
-    </script>
+    <script src="scripts/header/domain/header.domain.js" defer></script>
+    <script src="scripts/header/application/init-header-menu.usecase.js" defer></script>
+    <script src="scripts/header/ui/header.controller.js" defer></script>
+    <script src="scripts/header/app.js" defer></script>
   </body>
 </html>
