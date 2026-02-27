@@ -257,9 +257,22 @@ Base implementada:
 
 1. Editar seções (`*.php`) e estilos (`css/main.css`).
 2. Validar localmente em modo PHP.
-3. Regenerar estático com `./build-static.sh`.
-4. Revisar `git diff`.
-5. Commit e deploy.
+3. Executar testes locais com `tests/run-tests.sh`.
+4. Regenerar estático com `./build-static.sh`.
+5. Revisar `git diff`.
+6. Commit e deploy.
+
+### CI (GitHub Actions)
+
+Pipeline configurado em:
+- `.github/workflows/tests.yml`
+
+Acionamento:
+- push
+- pull request
+
+Execução:
+- roda `./tests/run-tests.sh` em ambiente Ubuntu com PHP 8.2 e Node 20.
 
 ### Observações
 
@@ -519,9 +532,22 @@ Implemented baseline:
 
 1. Edit section files (`*.php`) and styles (`css/main.css`).
 2. Validate locally in PHP mode.
-3. Regenerate static output with `./build-static.sh`.
-4. Review `git diff`.
-5. Commit and deploy.
+3. Run local tests with `tests/run-tests.sh`.
+4. Regenerate static output with `./build-static.sh`.
+5. Review `git diff`.
+6. Commit and deploy.
+
+### CI (GitHub Actions)
+
+Pipeline configured at:
+- `.github/workflows/tests.yml`
+
+Triggers:
+- push
+- pull request
+
+Execution:
+- runs `./tests/run-tests.sh` on Ubuntu with PHP 8.2 and Node 20.
 
 ### Notes
 
