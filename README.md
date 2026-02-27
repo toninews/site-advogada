@@ -78,6 +78,11 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- domain/services.domain.js
 |     |- application/init-services.usecase.js
 |     |- ui/services.controller.js
+|  |- areas/
+|     |- app.js
+|     |- domain/areas.domain.js
+|     |- application/init-areas-feedback.usecase.js
+|     |- ui/areas.controller.js
 |- app/
 |  |- shared/
 |  |  |- domain/domain-error.php
@@ -104,6 +109,8 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- contact.usecase.integration.test.mjs
 |     |- services.domain.test.mjs
 |     |- services.usecase.test.mjs
+|     |- areas.domain.test.mjs
+|     |- areas.usecase.test.mjs
 |- images/
 |- videos/
 |- .env.example
@@ -258,6 +265,14 @@ A animação dos cards de serviços também foi extraída para camadas leves:
 - `ui/controller`: controle de visibilidade dos cards por `IntersectionObserver`.
 - `app.js`: bootstrap da feature.
 
+### Refatoração Clean (Fase 4.2) - Módulo de Áreas
+
+O feedback dos botões \"Saiba mais\" foi extraído para camadas leves:
+- `domain`: conteúdo da mensagem e delay de exibição.
+- `application/usecase`: estado inicial do feedback.
+- `ui/controller`: binding de clique e controle de visibilidade da mensagem.
+- `app.js`: bootstrap da feature.
+
 Fluxo prático de publicação:
 1. Publicar/atualizar artigo no backend/CMS.
 2. Disparar novo build/deploy na Vercel (push/commit ou deploy hook).
@@ -402,6 +417,11 @@ In practice, this website is the public presentation layer while the article man
 |     |- domain/services.domain.js
 |     |- application/init-services.usecase.js
 |     |- ui/services.controller.js
+|  |- areas/
+|     |- app.js
+|     |- domain/areas.domain.js
+|     |- application/init-areas-feedback.usecase.js
+|     |- ui/areas.controller.js
 |- app/
 |  |- shared/
 |  |  |- domain/domain-error.php
@@ -428,6 +448,8 @@ In practice, this website is the public presentation layer while the article man
 |     |- contact.usecase.integration.test.mjs
 |     |- services.domain.test.mjs
 |     |- services.usecase.test.mjs
+|     |- areas.domain.test.mjs
+|     |- areas.usecase.test.mjs
 |- images/
 |- videos/
 |- .env.example
@@ -570,6 +592,14 @@ The services cards animation flow was also extracted into lightweight layers:
 - `domain`: motion preference rule and observer configuration.
 - `application/usecase`: section initialization plan.
 - `ui/controller`: cards visibility behavior via `IntersectionObserver`.
+- `app.js`: feature bootstrap.
+
+### Clean Refactor (Phase 4.2) - Areas Module
+
+The \"Learn more\" feedback flow in the areas section was extracted into lightweight layers:
+- `domain`: feedback message content and display delay.
+- `application/usecase`: feedback initial state.
+- `ui/controller`: click binding and feedback visibility behavior.
 - `app.js`: feature bootstrap.
 
 Practical publishing flow:

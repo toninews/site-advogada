@@ -49,27 +49,7 @@
   </div>
 </section>
 
-<script>
-(() => {
-  const links = document.querySelectorAll('.area-more-btn');
-  const feedback = document.getElementById('areas-feedback');
-  if (!links.length || !feedback) return;
-
-  let clearTimer = null;
-  const showFeedback = () => {
-    feedback.textContent = 'Em breve teremos páginas completas de cada área. Para atendimento imediato, use o WhatsApp ou o formulário de contato.';
-    feedback.classList.add('is-visible');
-    if (clearTimer) clearTimeout(clearTimer);
-    clearTimer = setTimeout(() => {
-      feedback.classList.remove('is-visible');
-    }, 5200);
-  };
-
-  links.forEach((link) => {
-    link.addEventListener('click', (event) => {
-      event.preventDefault();
-      showFeedback();
-    });
-  });
-})();
-</script>
+<script src="scripts/areas/domain/areas.domain.js" defer></script>
+<script src="scripts/areas/application/init-areas-feedback.usecase.js" defer></script>
+<script src="scripts/areas/ui/areas.controller.js" defer></script>
+<script src="scripts/areas/app.js" defer></script>
