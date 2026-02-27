@@ -88,6 +88,11 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- domain/about.domain.js
 |     |- application/init-about-reveal.usecase.js
 |     |- ui/about.controller.js
+|  |- history/
+|     |- app.js
+|     |- domain/history.domain.js
+|     |- application/init-history-reveal.usecase.js
+|     |- ui/history.controller.js
 |- app/
 |  |- shared/
 |  |  |- domain/domain-error.php
@@ -118,6 +123,8 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- areas.usecase.test.mjs
 |     |- about.domain.test.mjs
 |     |- about.usecase.test.mjs
+|     |- history.domain.test.mjs
+|     |- history.usecase.test.mjs
 |- images/
 |- videos/
 |- .env.example
@@ -288,6 +295,14 @@ O reveal dos elementos da seção \"Quem Somos\" foi extraído para camadas leve
 - `ui/controller`: integração com `IntersectionObserver` e fallback sem observer.
 - `app.js`: bootstrap da feature.
 
+### Refatoração Clean (Fase 4.4) - Módulo História
+
+O comportamento da seção de história foi extraído para camadas leves:
+- `domain`: regras de breakpoint mobile/desktop e opções do observer.
+- `application/usecase`: plano de inicialização para reveal e interações.
+- `ui/controller`: reveal do texto principal e toggle da foto em mobile.
+- `app.js`: bootstrap da feature.
+
 Fluxo prático de publicação:
 1. Publicar/atualizar artigo no backend/CMS.
 2. Disparar novo build/deploy na Vercel (push/commit ou deploy hook).
@@ -442,6 +457,11 @@ In practice, this website is the public presentation layer while the article man
 |     |- domain/about.domain.js
 |     |- application/init-about-reveal.usecase.js
 |     |- ui/about.controller.js
+|  |- history/
+|     |- app.js
+|     |- domain/history.domain.js
+|     |- application/init-history-reveal.usecase.js
+|     |- ui/history.controller.js
 |- app/
 |  |- shared/
 |  |  |- domain/domain-error.php
@@ -472,6 +492,8 @@ In practice, this website is the public presentation layer while the article man
 |     |- areas.usecase.test.mjs
 |     |- about.domain.test.mjs
 |     |- about.usecase.test.mjs
+|     |- history.domain.test.mjs
+|     |- history.usecase.test.mjs
 |- images/
 |- videos/
 |- .env.example
@@ -630,6 +652,14 @@ The \"Who we are\" reveal flow was extracted into lightweight layers:
 - `domain`: target selector, reveal class and observer options.
 - `application/usecase`: reveal initialization plan.
 - `ui/controller`: `IntersectionObserver` integration with no-observer fallback.
+- `app.js`: feature bootstrap.
+
+### Clean Refactor (Phase 4.4) - History Module
+
+The history section behavior was extracted into lightweight layers:
+- `domain`: mobile/desktop breakpoint rules and observer options.
+- `application/usecase`: initialization plan for reveal and interactions.
+- `ui/controller`: main text reveal and mobile image-card toggle.
 - `app.js`: feature bootstrap.
 
 Practical publishing flow:

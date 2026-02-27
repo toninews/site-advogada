@@ -38,47 +38,7 @@
 </section>
 
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const revealCard = document.querySelector(".history-reveal-card");
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const mainText = entry.target.querySelector(".history-main-text");
-      if (!mainText) return;
-
-      if (entry.isIntersecting) {
-        mainText.classList.add("show");
-      } else {
-        mainText.classList.remove("show");
-      }
-    });
-  }, { threshold: 0.2 });
-
-  const parallaxSection = document.querySelector("#history");
-  if (parallaxSection) {
-    observer.observe(parallaxSection);
-  }
-
-  if (revealCard) {
-    revealCard.addEventListener("click", (event) => {
-      if (!window.matchMedia("(max-width: 980px)").matches) return;
-      revealCard.classList.toggle("is-open");
-      event.stopPropagation();
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!window.matchMedia("(max-width: 980px)").matches) return;
-      if (!revealCard.contains(event.target)) {
-        revealCard.classList.remove("is-open");
-      }
-    });
-
-    window.addEventListener("resize", () => {
-      if (window.matchMedia("(min-width: 981px)").matches) {
-        revealCard.classList.remove("is-open");
-      }
-    });
-  }
-});
-</script>
+<script src="scripts/history/domain/history.domain.js" defer></script>
+<script src="scripts/history/application/init-history-reveal.usecase.js" defer></script>
+<script src="scripts/history/ui/history.controller.js" defer></script>
+<script src="scripts/history/app.js" defer></script>
