@@ -148,49 +148,12 @@ $contentHtml = $articleDetail['contentHtml'];
     </style>
   </head>
   <body>
-    <header class="container-fluid header-bg">
-      <div class="row middle-xs between-xs header-row">
-        <div class="col-xs-12 col-sm-3 start-xs brand-identity">
-          <a href="index.php" class="logo">
-            <img
-              src="images/optimized/logo-horizontal-220.webp"
-              srcset="images/optimized/logo-horizontal-220.webp 220w, images/optimized/logo-horizontal-320.webp 320w"
-              sizes="(min-width: 48em) 280px, 200px"
-              width="220"
-              height="233"
-              decoding="async"
-              alt="Advogada Maria Silva - Direito Civil e Trabalhista"
-            />
-          </a>
-          <a href="index.php" class="brand-name-header brand-name-header-link">Maria Silva Advocacia</a>
-        </div>
-
-        <div class="col-xs-12 col-sm-9 end-xs header-nav-wrap">
-          <button
-            class="menu-toggle"
-            type="button"
-            aria-expanded="false"
-            aria-controls="primary-menu"
-            aria-label="Abrir menu"
-          >
-            <span class="menu-toggle-bar"></span>
-            <span class="menu-toggle-bar"></span>
-            <span class="menu-toggle-bar"></span>
-          </button>
-
-          <nav class="site-nav" aria-label="Menu principal">
-            <ul id="primary-menu" class="site-menu">
-              <li><a href="index.php#about"><span>&#9670;</span> Sobre</a></li>
-              <li><a href="index.php#history"><span>&#9670;</span> História</a></li>
-              <li><a href="index.php#areas"><span>&#9670;</span> Áreas de Atuação</a></li>
-              <li><a href="index.php#services"><span>&#9670;</span> Serviços</a></li>
-              <li><a href="index.php#articles"><span>&#9670;</span> Artigos</a></li>
-              <li><a href="index.php#contato"><span>&#9670;</span> Contato</a></li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-    </header>
+    <?php
+    $headerMenuPrefix = 'index.php';
+    $headerHomeHref = 'index.php';
+    $headerBrandHref = 'index.php';
+    include 'header.php';
+    ?>
 
     <main class="article-page" aria-labelledby="article-title">
       <div class="article-page-top">
@@ -219,10 +182,5 @@ $contentHtml = $articleDetail['contentHtml'];
     </main>
 
     <?php include 'footer.php'; ?>
-
-    <script src="scripts/header/domain/header.domain.js" defer></script>
-    <script src="scripts/header/application/init-header-menu.usecase.js" defer></script>
-    <script src="scripts/header/ui/header.controller.js" defer></script>
-    <script src="scripts/header/app.js" defer></script>
   </body>
 </html>

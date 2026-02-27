@@ -1,7 +1,12 @@
+<?php
+$headerMenuPrefix = isset($headerMenuPrefix) ? (string)$headerMenuPrefix : '';
+$headerHomeHref = isset($headerHomeHref) ? (string)$headerHomeHref : '/';
+$headerBrandHref = isset($headerBrandHref) ? (string)$headerBrandHref : $headerHomeHref;
+?>
 <header class="container-fluid header-bg">
   <div class="row middle-xs between-xs header-row">
     <div class="col-xs-12 col-sm-3 start-xs brand-identity">
-      <a href="/" class="logo">
+      <a href="<?php echo htmlspecialchars($headerHomeHref, ENT_QUOTES, 'UTF-8'); ?>" class="logo">
         <img
           src="images/optimized/logo-horizontal-220.webp"
           srcset="images/optimized/logo-horizontal-220.webp 220w, images/optimized/logo-horizontal-320.webp 320w"
@@ -12,7 +17,7 @@
           alt="Advogada Maria Silva - Direito Civil e Trabalhista"
         >
       </a>
-      <a href="/" class="brand-name-header brand-name-header-link">Maria Silva Advocacia</a>
+      <a href="<?php echo htmlspecialchars($headerBrandHref, ENT_QUOTES, 'UTF-8'); ?>" class="brand-name-header brand-name-header-link">Maria Silva Advocacia</a>
     </div>
 
     <div class="col-xs-12 col-sm-9 end-xs header-nav-wrap">
@@ -45,12 +50,12 @@
 
       <nav class="site-nav" aria-label="Menu principal">
         <ul id="primary-menu" class="site-menu">
-          <li><a href="#about"><span>&#9670;</span> Sobre</a></li>
-          <li><a href="#history"><span>&#9670;</span> História</a></li>
-          <li><a href="#areas"><span>&#9670;</span> Áreas de Atuação</a></li>
-          <li><a href="#services"><span>&#9670;</span> Serviços</a></li>
-          <li><a href="#articles"><span>&#9670;</span> Artigos</a></li>
-          <li><a href="#contato"><span>&#9670;</span> Contato</a></li>
+          <li><a href="<?php echo htmlspecialchars($headerMenuPrefix, ENT_QUOTES, 'UTF-8'); ?>#about"><span>&#9670;</span> Sobre</a></li>
+          <li><a href="<?php echo htmlspecialchars($headerMenuPrefix, ENT_QUOTES, 'UTF-8'); ?>#history"><span>&#9670;</span> História</a></li>
+          <li><a href="<?php echo htmlspecialchars($headerMenuPrefix, ENT_QUOTES, 'UTF-8'); ?>#areas"><span>&#9670;</span> Áreas de Atuação</a></li>
+          <li><a href="<?php echo htmlspecialchars($headerMenuPrefix, ENT_QUOTES, 'UTF-8'); ?>#services"><span>&#9670;</span> Serviços</a></li>
+          <li><a href="<?php echo htmlspecialchars($headerMenuPrefix, ENT_QUOTES, 'UTF-8'); ?>#articles"><span>&#9670;</span> Artigos</a></li>
+          <li><a href="<?php echo htmlspecialchars($headerMenuPrefix, ENT_QUOTES, 'UTF-8'); ?>#contato"><span>&#9670;</span> Contato</a></li>
         </ul>
       </nav>
     </div>

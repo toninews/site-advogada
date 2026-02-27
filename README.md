@@ -58,6 +58,8 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |- artigo.php (legacy redirect)
 |- contact.php
 |- footer.php
+|- templates/
+|  |- home-head.template.html
 |- scripts/
 |  |- generate-static-articles.mjs
 |  |- articles/
@@ -457,6 +459,8 @@ In practice, this website is the public presentation layer while the article man
 |- artigo.php (legacy redirect)
 |- contact.php
 |- footer.php
+|- templates/
+|  |- home-head.template.html
 |- scripts/
 |  |- generate-static-articles.mjs
 |  |- articles/
