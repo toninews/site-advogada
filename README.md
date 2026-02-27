@@ -73,6 +73,11 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- adapters/contact.repository.js
 |     |- application/submit-contact.usecase.js
 |     |- ui/contact.controller.js
+|  |- services/
+|     |- app.js
+|     |- domain/services.domain.js
+|     |- application/init-services.usecase.js
+|     |- ui/services.controller.js
 |- app/
 |  |- shared/
 |  |  |- domain/domain-error.php
@@ -97,6 +102,8 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- articles.controller.integration.test.mjs
 |     |- contact.domain.test.mjs
 |     |- contact.usecase.integration.test.mjs
+|     |- services.domain.test.mjs
+|     |- services.usecase.test.mjs
 |- images/
 |- videos/
 |- .env.example
@@ -243,6 +250,14 @@ O fluxo do formulário de contato foi extraído para camadas leves:
 - `ui/controller`: eventos de input/submit e feedback ao usuário.
 - `app.js`: bootstrap com injeção de dependências.
 
+### Refatoração Clean (Fase 4.1) - Módulo de Serviços
+
+A animação dos cards de serviços também foi extraída para camadas leves:
+- `domain`: regra de motion preference e configuração do observer.
+- `application/usecase`: plano de inicialização da seção.
+- `ui/controller`: controle de visibilidade dos cards por `IntersectionObserver`.
+- `app.js`: bootstrap da feature.
+
 Fluxo prático de publicação:
 1. Publicar/atualizar artigo no backend/CMS.
 2. Disparar novo build/deploy na Vercel (push/commit ou deploy hook).
@@ -382,6 +397,11 @@ In practice, this website is the public presentation layer while the article man
 |     |- adapters/contact.repository.js
 |     |- application/submit-contact.usecase.js
 |     |- ui/contact.controller.js
+|  |- services/
+|     |- app.js
+|     |- domain/services.domain.js
+|     |- application/init-services.usecase.js
+|     |- ui/services.controller.js
 |- app/
 |  |- shared/
 |  |  |- domain/domain-error.php
@@ -406,6 +426,8 @@ In practice, this website is the public presentation layer while the article man
 |     |- articles.controller.integration.test.mjs
 |     |- contact.domain.test.mjs
 |     |- contact.usecase.integration.test.mjs
+|     |- services.domain.test.mjs
+|     |- services.usecase.test.mjs
 |- images/
 |- videos/
 |- .env.example
@@ -541,6 +563,14 @@ The contact form flow was extracted into lightweight layers:
 - `application/usecase`: submission rules and result mapping.
 - `ui/controller`: input/submit events and user feedback.
 - `app.js`: dependency wiring and bootstrap.
+
+### Clean Refactor (Phase 4.1) - Services Module
+
+The services cards animation flow was also extracted into lightweight layers:
+- `domain`: motion preference rule and observer configuration.
+- `application/usecase`: section initialization plan.
+- `ui/controller`: cards visibility behavior via `IntersectionObserver`.
+- `app.js`: feature bootstrap.
 
 Practical publishing flow:
 1. Publish/update article in backend/CMS.

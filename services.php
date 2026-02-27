@@ -47,27 +47,7 @@
   </div>
 </section>
 
-<script>
-(() => {
-  const cards = document.querySelectorAll('.service-card');
-  const section = document.querySelector('#services');
-  if (!cards.length || !section) return;
-
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    cards.forEach((card) => card.classList.add('is-visible'));
-    return;
-  }
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        cards.forEach((card) => card.classList.add('is-visible'));
-      } else {
-        cards.forEach((card) => card.classList.remove('is-visible'));
-      }
-    });
-  }, { threshold: 0.22, rootMargin: '0px 0px -10% 0px' });
-
-  observer.observe(section);
-})();
-</script>
+<script src="scripts/services/domain/services.domain.js" defer></script>
+<script src="scripts/services/application/init-services.usecase.js" defer></script>
+<script src="scripts/services/ui/services.controller.js" defer></script>
+<script src="scripts/services/app.js" defer></script>

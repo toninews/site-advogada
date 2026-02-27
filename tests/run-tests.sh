@@ -16,5 +16,7 @@ node tests/js/articles.integration.test.mjs
 node tests/js/articles.controller.integration.test.mjs
 node tests/js/contact.domain.test.mjs
 node tests/js/contact.usecase.integration.test.mjs
+node tests/js/services.domain.test.mjs
+node tests/js/services.usecase.test.mjs
 
 echo "All tests passed."
