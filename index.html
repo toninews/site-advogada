@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-site-runtime="static">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,13 +33,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/flexboxgrid.css">
   <link rel="stylesheet" href="css/main.css?v=20260223a">
-  <script>window.__SITE_RUNTIME__ = "static";</script>
 </head>
 <body>
+<?php
+$headerMenuPrefix = isset($headerMenuPrefix) ? (string)$headerMenuPrefix : '';
+$headerHomeHref = isset($headerHomeHref) ? (string)$headerHomeHref : '/';
+$headerBrandHref = isset($headerBrandHref) ? (string)$headerBrandHref : $headerHomeHref;
+?>
 <header class="container-fluid header-bg">
   <div class="row middle-xs between-xs header-row">
     <div class="col-xs-12 col-sm-3 start-xs brand-identity">
-      <a href="/" class="logo">
+      <a href="<?php echo htmlspecialchars($headerHomeHref, ENT_QUOTES, 'UTF-8'); ?>" class="logo">
         <img
           src="images/optimized/logo-horizontal-220.webp"
           srcset="images/optimized/logo-horizontal-220.webp 220w, images/optimized/logo-horizontal-320.webp 320w"
@@ -50,7 +54,7 @@
           alt="Advogada Maria Silva - Direito Civil e Trabalhista"
         >
       </a>
-      <a href="/" class="brand-name-header brand-name-header-link">Maria Silva Advocacia</a>
+      <a href="<?php echo htmlspecialchars($headerBrandHref, ENT_QUOTES, 'UTF-8'); ?>" class="brand-name-header brand-name-header-link">Maria Silva Advocacia</a>
     </div>
 
     <div class="col-xs-12 col-sm-9 end-xs header-nav-wrap">
@@ -83,81 +87,22 @@
 
       <nav class="site-nav" aria-label="Menu principal">
         <ul id="primary-menu" class="site-menu">
-          <li><a href="#about"><span>&#9670;</span> Sobre</a></li>
-          <li><a href="#history"><span>&#9670;</span> História</a></li>
-          <li><a href="#areas"><span>&#9670;</span> Áreas de Atuação</a></li>
-          <li><a href="#services"><span>&#9670;</span> Serviços</a></li>
-          <li><a href="#articles"><span>&#9670;</span> Artigos</a></li>
-          <li><a href="#contato"><span>&#9670;</span> Contato</a></li>
+          <li><a href="<?php echo htmlspecialchars($headerMenuPrefix, ENT_QUOTES, 'UTF-8'); ?>#about"><span>&#9670;</span> Sobre</a></li>
+          <li><a href="<?php echo htmlspecialchars($headerMenuPrefix, ENT_QUOTES, 'UTF-8'); ?>#history"><span>&#9670;</span> História</a></li>
+          <li><a href="<?php echo htmlspecialchars($headerMenuPrefix, ENT_QUOTES, 'UTF-8'); ?>#areas"><span>&#9670;</span> Áreas de Atuação</a></li>
+          <li><a href="<?php echo htmlspecialchars($headerMenuPrefix, ENT_QUOTES, 'UTF-8'); ?>#services"><span>&#9670;</span> Serviços</a></li>
+          <li><a href="<?php echo htmlspecialchars($headerMenuPrefix, ENT_QUOTES, 'UTF-8'); ?>#articles"><span>&#9670;</span> Artigos</a></li>
+          <li><a href="<?php echo htmlspecialchars($headerMenuPrefix, ENT_QUOTES, 'UTF-8'); ?>#contato"><span>&#9670;</span> Contato</a></li>
         </ul>
       </nav>
     </div>
   </div>
 </header>
 
-<script>
-(() => {
-  const menuToggle = document.querySelector('.menu-toggle');
-  const siteMenu = document.querySelector('.site-menu');
-
-  if (!menuToggle || !siteMenu) return;
-
-  const closeMenu = () => {
-    menuToggle.setAttribute('aria-expanded', 'false');
-    menuToggle.setAttribute('aria-label', 'Abrir menu');
-    siteMenu.classList.remove('is-open');
-  };
-
-  menuToggle.addEventListener('click', () => {
-    const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
-    menuToggle.setAttribute('aria-expanded', String(!isOpen));
-    menuToggle.setAttribute('aria-label', isOpen ? 'Abrir menu' : 'Fechar menu');
-    siteMenu.classList.toggle('is-open');
-  });
-
-  document.addEventListener('click', (event) => {
-    const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
-    if (!isOpen) return;
-    if (menuToggle.contains(event.target) || siteMenu.contains(event.target)) return;
-    closeMenu();
-  });
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      closeMenu();
-    }
-  });
-
-  siteMenu.querySelectorAll('a').forEach((link) => {
-    link.addEventListener('click', () => {
-      if (window.matchMedia('(max-width: 47.99em)').matches) {
-        closeMenu();
-      }
-    });
-  });
-
-  window.addEventListener('resize', () => {
-    if (window.matchMedia('(min-width: 48em)').matches) {
-      closeMenu();
-    }
-  });
-
-  const adjustHashScroll = () => {
-    if (window.location.hash !== '#articles') return;
-    const target = document.querySelector('#articles');
-    if (!target) return;
-    const offset = 100;
-    const top = target.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({ top, behavior: 'auto' });
-  };
-
-  window.addEventListener('load', () => {
-    setTimeout(adjustHashScroll, 0);
-  });
-
-  window.addEventListener('hashchange', adjustHashScroll);
-})();
-</script>
+<script src="scripts/header/domain/header.domain.js" defer></script>
+<script src="scripts/header/application/init-header-menu.usecase.js" defer></script>
+<script src="scripts/header/ui/header.controller.js" defer></script>
+<script src="scripts/header/app.js" defer></script>
   <div class="carousel">
 
   <div class="carousel-item active">
@@ -291,114 +236,10 @@
   <span>Chamar no WhatsApp</span>
 </a>
 
-<script>
-(() => {
-  const slides = document.querySelectorAll('.carousel-item');
-  const dots = document.querySelectorAll('.pagination-button');
-  const currentIndicator = document.querySelector('.pagination-current');
-  const carouselElement = document.querySelector('.carousel');
-  const prevButton = document.querySelector('.prev');
-  const nextButton = document.querySelector('.next');
-  const AUTOPLAY_DELAY = 6500;
-  let currentSlide = 0;
-  let autoPlayTimer = null;
-  let autoPlayPaused = false;
-
-  if (!slides.length || !carouselElement) return;
-
-  function updateIndicatorPosition(index) {
-    if (!currentIndicator) return;
-    currentIndicator.style.transform = `translateX(calc(${index} * var(--pagination-step)))`;
-  }
-
-  function showSlide(index) {
-    slides.forEach((slide, i) => {
-      const isActive = i === index;
-      slide.classList.toggle('active', isActive);
-      if (dots[i]) dots[i].classList.toggle('active', isActive);
-    });
-    updateIndicatorPosition(index);
-  }
-
-  function clearAutoPlay() {
-    if (!autoPlayTimer) return;
-    clearTimeout(autoPlayTimer);
-    autoPlayTimer = null;
-  }
-
-  function scheduleAutoPlay() {
-    clearAutoPlay();
-    if (autoPlayPaused) return;
-    autoPlayTimer = setTimeout(() => {
-      moveSlide(1, true);
-      scheduleAutoPlay();
-    }, AUTOPLAY_DELAY);
-  }
-
-  function goToSlide(index, fromAutoPlay = false) {
-    const normalizedIndex = (index + slides.length) % slides.length;
-    if (normalizedIndex === currentSlide) {
-      if (!fromAutoPlay) scheduleAutoPlay();
-      return;
-    }
-    currentSlide = normalizedIndex;
-    showSlide(currentSlide);
-    if (!fromAutoPlay) scheduleAutoPlay();
-  }
-
-  function moveSlide(step, fromAutoPlay = false) {
-    goToSlide(currentSlide + step, fromAutoPlay);
-  }
-
-  function warmUpNextSlides() {
-    slides.forEach((slide, index) => {
-      if (index === 0) return;
-      const image = slide.querySelector('img');
-      if (!image) return;
-      image.loading = 'eager';
-      if (image.decode) image.decode().catch(() => {});
-    });
-  }
-
-  prevButton?.addEventListener('click', () => moveSlide(-1));
-  nextButton?.addEventListener('click', () => moveSlide(1));
-
-  dots.forEach((dot, index) => {
-    dot.addEventListener('click', () => {
-      goToSlide(index);
-    });
-  });
-
-  carouselElement.addEventListener('mouseenter', () => {
-    autoPlayPaused = true;
-    clearAutoPlay();
-  });
-
-  carouselElement.addEventListener('mouseleave', () => {
-    autoPlayPaused = false;
-    scheduleAutoPlay();
-  });
-
-  document.addEventListener('visibilitychange', () => {
-    autoPlayPaused = document.hidden;
-    if (autoPlayPaused) clearAutoPlay();
-    else scheduleAutoPlay();
-  });
-
-  window.addEventListener('resize', () => {
-    updateIndicatorPosition(currentSlide);
-  });
-
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(warmUpNextSlides, { timeout: 1200 });
-  } else {
-    setTimeout(warmUpNextSlides, 240);
-  }
-
-  showSlide(currentSlide);
-  scheduleAutoPlay();
-})();
-</script>
+<script src="scripts/carousel/domain/carousel.domain.js" defer></script>
+<script src="scripts/carousel/application/init-carousel.usecase.js" defer></script>
+<script src="scripts/carousel/ui/carousel.controller.js" defer></script>
+<script src="scripts/carousel/app.js" defer></script>
 <section id="about" class="about-section container-fluid">
   <div class="row center-xs about-row">
     <div class="col-xs-12">
@@ -443,19 +284,10 @@
   </div>
 </section>
 
-<script>
-  const elements = document.querySelectorAll('.hidden');
-
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('show');
-      }
-    });
-  });
-
-  elements.forEach(el => observer.observe(el));
-</script>
+<script src="scripts/about/domain/about.domain.js" defer></script>
+<script src="scripts/about/application/init-about-reveal.usecase.js" defer></script>
+<script src="scripts/about/ui/about.controller.js" defer></script>
+<script src="scripts/about/app.js" defer></script>
 <section id="history" class="parallax">
   <div class="parallax-content container-fluid">
     <div class="row center-xs">
@@ -496,50 +328,10 @@
 </section>
 
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const revealCard = document.querySelector(".history-reveal-card");
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const mainText = entry.target.querySelector(".history-main-text");
-      if (!mainText) return;
-
-      if (entry.isIntersecting) {
-        mainText.classList.add("show");
-      } else {
-        mainText.classList.remove("show");
-      }
-    });
-  }, { threshold: 0.2 });
-
-  const parallaxSection = document.querySelector("#history");
-  if (parallaxSection) {
-    observer.observe(parallaxSection);
-  }
-
-  if (revealCard) {
-    revealCard.addEventListener("click", (event) => {
-      if (!window.matchMedia("(max-width: 980px)").matches) return;
-      revealCard.classList.toggle("is-open");
-      event.stopPropagation();
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!window.matchMedia("(max-width: 980px)").matches) return;
-      if (!revealCard.contains(event.target)) {
-        revealCard.classList.remove("is-open");
-      }
-    });
-
-    window.addEventListener("resize", () => {
-      if (window.matchMedia("(min-width: 981px)").matches) {
-        revealCard.classList.remove("is-open");
-      }
-    });
-  }
-});
-</script>
+<script src="scripts/history/domain/history.domain.js" defer></script>
+<script src="scripts/history/application/init-history-reveal.usecase.js" defer></script>
+<script src="scripts/history/ui/history.controller.js" defer></script>
+<script src="scripts/history/app.js" defer></script>
 <section id="areas" class="areas-cards container-fluid">
   <div class="row center-xs">
     <div class="col-xs-12">
@@ -591,30 +383,10 @@ document.addEventListener("DOMContentLoaded", () => {
   </div>
 </section>
 
-<script>
-(() => {
-  const links = document.querySelectorAll('.area-more-btn');
-  const feedback = document.getElementById('areas-feedback');
-  if (!links.length || !feedback) return;
-
-  let clearTimer = null;
-  const showFeedback = () => {
-    feedback.textContent = 'Em breve teremos páginas completas de cada área. Para atendimento imediato, use o WhatsApp ou o formulário de contato.';
-    feedback.classList.add('is-visible');
-    if (clearTimer) clearTimeout(clearTimer);
-    clearTimer = setTimeout(() => {
-      feedback.classList.remove('is-visible');
-    }, 5200);
-  };
-
-  links.forEach((link) => {
-    link.addEventListener('click', (event) => {
-      event.preventDefault();
-      showFeedback();
-    });
-  });
-})();
-</script>
+<script src="scripts/areas/domain/areas.domain.js" defer></script>
+<script src="scripts/areas/application/init-areas-feedback.usecase.js" defer></script>
+<script src="scripts/areas/ui/areas.controller.js" defer></script>
+<script src="scripts/areas/app.js" defer></script>
 <section id="services" class="area-destaque container-fluid">
   <video
     class="area-destaque-video"
@@ -664,30 +436,10 @@ document.addEventListener("DOMContentLoaded", () => {
   </div>
 </section>
 
-<script>
-(() => {
-  const cards = document.querySelectorAll('.service-card');
-  const section = document.querySelector('#services');
-  if (!cards.length || !section) return;
-
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    cards.forEach((card) => card.classList.add('is-visible'));
-    return;
-  }
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        cards.forEach((card) => card.classList.add('is-visible'));
-      } else {
-        cards.forEach((card) => card.classList.remove('is-visible'));
-      }
-    });
-  }, { threshold: 0.22, rootMargin: '0px 0px -10% 0px' });
-
-  observer.observe(section);
-})();
-</script>
+<script src="scripts/services/domain/services.domain.js" defer></script>
+<script src="scripts/services/application/init-services.usecase.js" defer></script>
+<script src="scripts/services/ui/services.controller.js" defer></script>
+<script src="scripts/services/app.js" defer></script>
 <section id="articles" class="articles-section container-fluid" aria-labelledby="articles-title">
   <div class="row center-xs">
     <div class="col-xs-12">
@@ -797,69 +549,11 @@ document.addEventListener("DOMContentLoaded", () => {
   ></iframe>
 </section>
 
-<script>
-(() => {
-  const form = document.getElementById('contact-form');
-  const feedback = document.getElementById('contact-feedback');
-  const phoneInput = form ? form.querySelector('input[name="phone"]') : null;
-  if (!form || !feedback) return;
-
-  const requiredFields = ['name', 'phone', 'email', 'area', 'message'];
-
-  function setFeedback(message, isError = false) {
-    feedback.textContent = message;
-    feedback.classList.toggle('is-error', isError);
-  }
-
-  function normalizePhone(value) {
-    return String(value || '').replace(/\D/g, '');
-  }
-
-  function formatPhone(value) {
-    const digits = normalizePhone(value).slice(0, 11);
-    if (digits.length <= 2) return digits;
-    if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-  }
-
-  if (phoneInput) {
-    phoneInput.addEventListener('input', () => {
-      phoneInput.value = formatPhone(phoneInput.value);
-    });
-    phoneInput.addEventListener('blur', () => {
-      phoneInput.value = formatPhone(phoneInput.value);
-    });
-  }
-
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-
-    const data = new FormData(form);
-    const values = Object.fromEntries(data.entries());
-
-    for (const field of requiredFields) {
-      if (!String(values[field] || '').trim()) {
-        setFeedback('Preencha todos os campos obrigatórios.', true);
-        return;
-      }
-    }
-
-    const phoneDigits = normalizePhone(values.phone);
-    if (phoneDigits.length < 11) {
-      setFeedback('Informe um Celular / WhatsApp válido com DDD.', true);
-      return;
-    }
-
-    setFeedback('Enviando...');
-
-    setTimeout(() => {
-      setFeedback('Mensagem simulada com sucesso. Este site é um modelo demonstrativo e não realiza envio real.');
-      form.reset();
-    }, 700);
-  });
-})();
-</script>
+<script src="scripts/contact/domain/contact.domain.js" defer></script>
+<script src="scripts/contact/adapters/contact.repository.js" defer></script>
+<script src="scripts/contact/application/submit-contact.usecase.js" defer></script>
+<script src="scripts/contact/ui/contact.controller.js" defer></script>
+<script src="scripts/contact/app.js" defer></script>
 <footer class="container-fluid site-footer" aria-labelledby="footer-title">
   <div class="row start-xs site-footer-row">
     <div class="col-xs-12 col-md-3 footer-col footer-col-start">
