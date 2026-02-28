@@ -139,6 +139,7 @@ Na prática, o site funciona como camada pública de exibição, enquanto o ecos
 |     |- history.usecase.test.mjs
 |     |- header.domain.test.mjs
 |     |- header.usecase.test.mjs
+|     |- header.controller.integration.test.mjs
 |     |- carousel.domain.test.mjs
 |     |- carousel.usecase.test.mjs
 |- images/
@@ -540,6 +541,7 @@ In practice, this website is the public presentation layer while the article man
 |     |- history.usecase.test.mjs
 |     |- header.domain.test.mjs
 |     |- header.usecase.test.mjs
+|     |- header.controller.integration.test.mjs
 |     |- carousel.domain.test.mjs
 |     |- carousel.usecase.test.mjs
 |- images/
