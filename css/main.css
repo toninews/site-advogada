@@ -1004,10 +1004,6 @@ header.container-fluid .brand-name-header-link:active {
   transform: scale(1.45, 0.85);
 }
 
-.brand-name {
-  /* Removed duplicate .brand-name rule to fix header font-size */
-}
-
 .about-section {
   padding: 2rem 1rem;
   min-height: 400px;
