@@ -13,7 +13,7 @@
         sizes="100vw"
       >
       <img
-        src="images/optimized/direito-criminal-640.webp"
+        src="images/optimized/direito-criminal-480.webp"
         alt="Direito Criminal"
         loading="eager"
         fetchpriority="high"
@@ -43,7 +43,7 @@
       <img
         src="images/optimized/direito-previdenciario-1280.webp"
         alt="Direito Previdenciario"
-        loading="eager"
+        loading="lazy"
         decoding="async"
         width="1600"
         height="900"

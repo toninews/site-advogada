@@ -11,13 +11,37 @@
     const form = document.getElementById('contact-form');
     const feedback = document.getElementById('contact-feedback');
     const phoneInput = form ? form.querySelector('input[name="phone"]') : null;
-    if (!form || !feedback) {
-      return { start: () => {} };
-    }
+    const mapFrame = document.querySelector('.contact-map-frame[data-src]');
 
     function setFeedback(message, isError = false) {
+      if (!feedback) return;
       feedback.textContent = message;
       feedback.classList.toggle('is-error', isError);
+    }
+
+    function loadMapFrame() {
+      if (!mapFrame || mapFrame.src) return;
+      mapFrame.src = mapFrame.dataset.src;
+    }
+
+    function bindLazyMap() {
+      if (!mapFrame) return;
+
+      if (!('IntersectionObserver' in global)) {
+        loadMapFrame();
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        const [entry] = entries;
+        if (!entry || !entry.isIntersecting) return;
+        loadMapFrame();
+        observer.disconnect();
+      }, {
+        rootMargin: '240px 0px'
+      });
+
+      observer.observe(mapFrame);
     }
 
     function bindPhoneMask() {
@@ -55,6 +79,8 @@
     }
 
     function start() {
+      bindLazyMap();
+      if (!form || !feedback) return;
       bindPhoneMask();
       form.addEventListener('submit', handleSubmit);
     }

@@ -5,8 +5,8 @@
     muted
     loop
     playsinline
-    preload="metadata"
-    poster="images/optimized/direito-criminal-768.webp"
+    preload="none"
+    poster="images/optimized/direito-criminal-480.webp"
     aria-hidden="true"
   >
     <source src="videos/services-optimized.mp4" type="video/mp4" />

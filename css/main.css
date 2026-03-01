@@ -67,6 +67,10 @@ body {
   margin: 0px;
 }
 
+main {
+  display: block;
+}
+
 .btn {
   border-radius: 8px;
   color: #223830;
@@ -125,6 +129,7 @@ header.container-fluid .logo img {
   display: block;
   height: 72px;
   width: auto;
+  max-width: 120px;
   object-fit: contain;
 }
 
@@ -672,6 +677,12 @@ header.container-fluid .brand-name-header-link:active {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.carousel picture {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .carousel-item {
@@ -1530,6 +1541,7 @@ header.container-fluid .brand-name-header-link:active {
   width: 100%;
   height: 360px;
   border: 0;
+  background: linear-gradient(135deg, rgba(27, 77, 62, 0.12), rgba(34, 56, 48, 0.18));
 }
 
 .contact-intro {
@@ -1929,6 +1941,10 @@ header.container-fluid .brand-name-header-link:active {
   transition: all 0.3s ease;
 }
 
+.card h3 {
+  color: #223830;
+}
+
 .area-destaque-row {
   position: relative;
   z-index: 2;
@@ -1980,6 +1996,7 @@ header.container-fluid .brand-name-header-link:active {
 }
 
 .card p {
+  color: #282828;
   text-align: justify;
   line-height: 1.6;
 }

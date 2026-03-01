@@ -77,11 +77,21 @@
   <iframe
     class="contact-map-frame"
     title="Mapa de Itajai, Santa Catarina"
-    src="https://www.google.com/maps?q=Itajai,+SC&output=embed"
-    loading="eager"
+    data-src="https://www.google.com/maps?q=Itajai,+SC&output=embed"
+    loading="lazy"
     referrerpolicy="no-referrer-when-downgrade"
     allowfullscreen
   ></iframe>
+  <noscript>
+    <iframe
+      class="contact-map-frame"
+      title="Mapa de Itajai, Santa Catarina"
+      src="https://www.google.com/maps?q=Itajai,+SC&output=embed"
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+      allowfullscreen
+    ></iframe>
+  </noscript>
 </section>
 
 <script src="scripts/contact/domain/contact.domain.js" defer></script>
