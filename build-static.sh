@@ -21,7 +21,7 @@ HOME_HEAD_TEMPLATE="${HOME_HEAD_TEMPLATE//'{{OG_IMAGE_URL}}'/'https://site-advog
 
 printf '%s\n' "$HOME_HEAD_TEMPLATE" > index.html
 
-cat header.php >> index.html
+cat templates/home-header.static.html >> index.html
 cat carousel.php >> index.html
 cat about.php >> index.html
 cat history.php >> index.html
