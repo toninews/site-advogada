@@ -145,16 +145,21 @@ async function main() {
   await fs.mkdir(articlesDir, { recursive: true });
 
   let payload;
+  const articlesIndexPath = path.join(articlesDir, "index.json");
   try {
     payload = await fetchJsonWithRetry(`${apiBase}/articles?status=published&limit=200`);
-  } catch {
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    await fs.writeFile(articlesIndexPath, "[]\n", "utf8");
     console.error(`Erro: não foi possível consultar a API de artigos após ${maxAttempts} tentativas.`);
-    process.exit(1);
+    console.error(`Motivo: ${reason}`);
+    console.error("Fallback aplicado: pasta /artigos gerada vazia para não bloquear o deploy.");
+    return;
   }
 
   const items = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
   if (!items.length) {
-    await fs.writeFile(path.join(articlesDir, "index.json"), "[]\n", "utf8");
+    await fs.writeFile(articlesIndexPath, "[]\n", "utf8");
     console.error("Aviso: API respondeu, mas sem artigos publicados. Pasta /artigos gerada vazia.");
     return;
   }
@@ -163,7 +168,7 @@ async function main() {
     .map((item) => buildCardSummary(item))
     .filter(Boolean);
   await fs.writeFile(
-    path.join(articlesDir, "index.json"),
+    articlesIndexPath,
     `${JSON.stringify(cardsPayload)}\n`,
     "utf8",
   );
