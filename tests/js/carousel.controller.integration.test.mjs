@@ -208,7 +208,7 @@ assertTrue(slides[0].classList.contains('active'), 'carousel should keep first s
 assertTrue(dots[0].classList.contains('active'), 'carousel should keep first dot active on start');
 assertTrue(indicator.style.transform === 'translateX(calc(0 * var(--pagination-step)))', 'carousel should position indicator on first slide');
 assertTrue(idleCallbacks.length === 1, 'carousel should schedule image warmup with requestIdleCallback when available');
-assertTrue(timeouts.some((row) => row.delay === 6500), 'carousel should schedule autoplay timer');
+assertTrue(timeouts.some((row) => row.delay === 3000), 'carousel should schedule autoplay timer');
 
 nextButton.dispatch('click');
 assertTrue(slides[1].classList.contains('active'), 'carousel should activate second slide on next click');

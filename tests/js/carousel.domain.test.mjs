@@ -14,7 +14,7 @@ vm.runInContext(fs.readFileSync(sourcePath, 'utf8'), context, { filename: source
 
 const domain = context.window.SiteAdvogadaCarouselDomain;
 assertTrue(Boolean(domain), 'carousel domain should be registered globally');
-assertTrue(domain.getAutoplayDelayMs() === 6500, 'carousel autoplay delay should be 6500ms');
+assertTrue(domain.getAutoplayDelayMs() === 3000, 'carousel autoplay delay should be 3000ms');
 assertTrue(domain.normalizeIndex(5, 4) === 1, 'normalizeIndex should wrap forward indexes');
 assertTrue(domain.normalizeIndex(-1, 4) === 3, 'normalizeIndex should wrap backward indexes');
 assertTrue(domain.getWarmupDelayMs() === 240, 'carousel warmup delay should be 240ms');

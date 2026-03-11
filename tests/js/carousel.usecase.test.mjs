@@ -23,7 +23,7 @@ const useCaseFactory = context.window.SiteAdvogadaInitCarouselUseCase;
 const useCase = useCaseFactory.createInitCarouselUseCase({ domain });
 
 const plan = useCase.buildPlan();
-assertTrue(plan.autoplayDelayMs === 6500, 'carousel usecase should expose autoplay delay');
+assertTrue(plan.autoplayDelayMs === 3000, 'carousel usecase should expose autoplay delay');
 assertTrue(plan.warmupDelayMs === 240, 'carousel usecase should expose warmup delay');
 assertTrue(plan.idleWarmupTimeoutMs === 1200, 'carousel usecase should expose idle warmup timeout');
 assertTrue(plan.normalizeIndex(-1, 4) === 3, 'carousel usecase should delegate normalizeIndex');

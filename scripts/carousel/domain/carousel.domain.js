@@ -1,6 +1,6 @@
 (function registerCarouselDomain(global) {
   function getAutoplayDelayMs() {
-    return 6500;
+    return 3000;
   }
 
   function normalizeIndex(index, length) {
